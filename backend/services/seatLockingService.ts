@@ -1,5 +1,5 @@
-import { pool } from '../index';
-import { io } from '../index';
+import { pool } from "../index";
+import { io } from "../index";
 
 interface SeatLockData {
   seatId: number;
@@ -30,59 +30,65 @@ class SeatLockingService {
   /**
    * Lock a seat for a user
    */
-  async lockSeat(data: SeatLockData): Promise<{ success: boolean; message: string; seat?: any }> {
+  async lockSeat(
+    data: SeatLockData,
+  ): Promise<{ success: boolean; message: string; seat?: any }> {
     const { seatId, seatNumber, showId, userId, socketId } = data;
-    
-    console.log(`🔒 Attempting to lock seat ${seatNumber} for user ${userId} in show ${showId}`);
+
+    console.log(
+      `🔒 Attempting to lock seat ${seatNumber} for user ${userId} in show ${showId}`,
+    );
 
     try {
       // Use database transaction to prevent race conditions
       const client = await pool.connect();
-      
+
       try {
-        await client.query('BEGIN');
+        await client.query("BEGIN");
 
         // Check if seat is available and not locked by someone else
         const seatCheck = await client.query(
           `SELECT * FROM seats 
            WHERE id = $1 AND show_id = $2 
            AND (status = 'available' OR (status = 'locked' AND locked_by = $3))`,
-          [seatId, showId, userId]
+          [seatId, showId, userId],
         );
 
         if (seatCheck.rows.length === 0) {
-          await client.query('ROLLBACK');
-          return { 
-            success: false, 
-            message: 'Seat is not available or already locked by another user' 
+          await client.query("ROLLBACK");
+          return {
+            success: false,
+            message: "Seat is not available or already locked by another user",
           };
         }
 
         const seat = seatCheck.rows[0];
 
         // If seat is already locked by this user, extend the lock
-        if (seat.status === 'locked' && seat.locked_by === userId) {
+        if (seat.status === "locked" && seat.locked_by === userId) {
           const lockExpiresAt = new Date(Date.now() + this.LOCK_DURATION);
-          
+
           await client.query(
             `UPDATE seats 
              SET lock_expires_at = $1 
              WHERE id = $2`,
-            [lockExpiresAt, seatId]
+            [lockExpiresAt, seatId],
           );
 
           // Extend timeout
           this.extendLockTimeout(seatNumber, showId, userId);
 
-          await client.query('COMMIT');
-          
-          console.log(`⏰ Extended lock for seat ${seatNumber} by user ${userId}`);
-          return { success: true, message: 'Lock extended', seat };
+          await client.query("COMMIT");
+
+          console.log(
+            `⏰ Extended lock for seat ${seatNumber} by user ${userId}`,
+          );
+          return { success: true, message: "Lock extended", seat };
         }
 
         // Lock the seat
         const lockExpiresAt = new Date(Date.now() + this.LOCK_DURATION);
-        
+
         const result = await client.query(
           `UPDATE seats 
            SET status = 'locked', 
@@ -91,56 +97,67 @@ class SeatLockingService {
                lock_expires_at = $2 
            WHERE id = $3 AND status = 'available' 
            RETURNING *`,
-          [userId, lockExpiresAt, seatId]
+          [userId, lockExpiresAt, seatId],
         );
 
         if (result.rows.length === 0) {
-          await client.query('ROLLBACK');
-          return { 
-            success: false, 
-            message: 'Seat is no longer available' 
+          await client.query("ROLLBACK");
+          return {
+            success: false,
+            message: "Seat is no longer available",
           };
         }
 
         // Track the lock
         this.trackUserSeat(socketId, showId, seatNumber);
-        
+
         // Set timeout to auto-unlock
         this.setLockTimeout(seatNumber, showId, userId);
 
-        await client.query('COMMIT');
+        await client.query("COMMIT");
 
         const lockedSeat = result.rows[0];
-        console.log(`✅ Successfully locked seat ${seatNumber} for user ${userId}`);
+        console.log(
+          `✅ Successfully locked seat ${seatNumber} for user ${userId}`,
+        );
 
         // Broadcast to all users in the show room
-        io.to(`show-${showId}`).emit('seat-updated', {
+        io.to(`show-${showId}`).emit("seat-updated", {
           seatNumber,
-          status: 'locked',
+          status: "locked",
           userId,
-          lockExpiresAt: lockedSeat.lock_expires_at
+          lockExpiresAt: lockedSeat.lock_expires_at,
         });
 
-        return { success: true, message: 'Seat locked successfully', seat: lockedSeat };
-
+        return {
+          success: true,
+          message: "Seat locked successfully",
+          seat: lockedSeat,
+        };
       } catch (error) {
-        await client.query('ROLLBACK');
+        await client.query("ROLLBACK");
         throw error;
       } finally {
         client.release();
       }
-
     } catch (error) {
-      console.error('❌ Error locking seat:', error);
-      return { success: false, message: 'Failed to lock seat' };
+      console.error("❌ Error locking seat:", error);
+      return { success: false, message: "Failed to lock seat" };
     }
   }
 
   /**
    * Unlock a seat
    */
-  async unlockSeat(seatNumber: string, showId: string, userId: number, socketId: string): Promise<{ success: boolean; message: string }> {
-    console.log(`🔓 Attempting to unlock seat ${seatNumber} for user ${userId}`);
+  async unlockSeat(
+    seatNumber: string,
+    showId: string,
+    userId: number,
+    socketId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    console.log(
+      `🔓 Attempting to unlock seat ${seatNumber} for user ${userId}`,
+    );
 
     try {
       const result = await pool.query(
@@ -151,33 +168,37 @@ class SeatLockingService {
              lock_expires_at = NULL 
          WHERE seat_number = $1 AND show_id = $2 AND locked_by = $3 
          RETURNING *`,
-        [seatNumber, showId, userId]
+        [seatNumber, showId, userId],
       );
 
       if (result.rows.length === 0) {
-        return { success: false, message: 'Seat not found or not locked by you' };
+        return {
+          success: false,
+          message: "Seat not found or not locked by you",
+        };
       }
 
       // Remove from tracking
       this.untrackUserSeat(socketId, showId, seatNumber);
-      
+
       // Clear timeout
       this.clearLockTimeout(seatNumber, showId, userId);
 
-      console.log(`✅ Successfully unlocked seat ${seatNumber} for user ${userId}`);
+      console.log(
+        `✅ Successfully unlocked seat ${seatNumber} for user ${userId}`,
+      );
 
       // Broadcast to all users in the show room
-      io.to(`show-${showId}`).emit('seat-updated', {
+      io.to(`show-${showId}`).emit("seat-updated", {
         seatNumber,
-        status: 'available',
-        userId: null
+        status: "available",
+        userId: null,
       });
 
-      return { success: true, message: 'Seat unlocked successfully' };
-
+      return { success: true, message: "Seat unlocked successfully" };
     } catch (error) {
-      console.error('❌ Error unlocking seat:', error);
-      return { success: false, message: 'Failed to unlock seat' };
+      console.error("❌ Error unlocking seat:", error);
+      return { success: false, message: "Failed to unlock seat" };
     }
   }
 
@@ -195,8 +216,8 @@ class SeatLockingService {
         try {
           // Get user ID from the seat
           const seatResult = await pool.query(
-            'SELECT locked_by FROM seats WHERE seat_number = $1 AND show_id = $2',
-            [seatNumber, showId]
+            "SELECT locked_by FROM seats WHERE seat_number = $1 AND show_id = $2",
+            [seatNumber, showId],
           );
 
           if (seatResult.rows.length > 0) {
@@ -204,7 +225,10 @@ class SeatLockingService {
             await this.unlockSeat(seatNumber, showId, userId, socketId);
           }
         } catch (error) {
-          console.error(`Error unlocking seat ${seatNumber} on disconnect:`, error);
+          console.error(
+            `Error unlocking seat ${seatNumber} on disconnect:`,
+            error,
+          );
         }
       }
     }
@@ -225,7 +249,7 @@ class SeatLockingService {
              locked_at = NULL, 
              lock_expires_at = NULL 
          WHERE status = 'locked' AND lock_expires_at < NOW() 
-         RETURNING *`
+         RETURNING *`,
       );
 
       if (result.rows.length > 0) {
@@ -233,7 +257,7 @@ class SeatLockingService {
 
         // Broadcast updates for each affected show
         const affectedShows = new Map<string, string[]>();
-        
+
         for (const seat of result.rows) {
           if (!affectedShows.has(seat.show_id.toString())) {
             affectedShows.set(seat.show_id.toString(), []);
@@ -244,41 +268,50 @@ class SeatLockingService {
         // Broadcast to each show room
         for (const [showId, seatNumbers] of affectedShows) {
           for (const seatNumber of seatNumbers) {
-            io.to(`show-${showId}`).emit('seat-updated', {
+            io.to(`show-${showId}`).emit("seat-updated", {
               seatNumber,
-              status: 'available',
-              userId: null
+              status: "available",
+              userId: null,
             });
           }
         }
       }
     } catch (error) {
-      console.error('Error cleaning up expired locks:', error);
+      console.error("Error cleaning up expired locks:", error);
     }
   }
 
   /**
    * Book seats (convert locks to booked status)
    */
-  async bookSeats(seatNumbers: string[], showId: string, userId: number): Promise<{ success: boolean; message: string }> {
-    console.log(`🎫 Booking seats ${seatNumbers.join(', ')} for user ${userId}`);
+  async bookSeats(
+    seatNumbers: string[],
+    showId: string,
+    userId: number,
+  ): Promise<{ success: boolean; message: string }> {
+    console.log(
+      `🎫 Booking seats ${seatNumbers.join(", ")} for user ${userId}`,
+    );
 
     try {
       const client = await pool.connect();
-      
+
       try {
-        await client.query('BEGIN');
+        await client.query("BEGIN");
 
         // Check if all seats are locked by this user
         const seatCheck = await client.query(
           `SELECT * FROM seats 
            WHERE seat_number = ANY($1) AND show_id = $2 AND locked_by = $3 AND status = 'locked'`,
-          [seatNumbers, showId, userId]
+          [seatNumbers, showId, userId],
         );
 
         if (seatCheck.rows.length !== seatNumbers.length) {
-          await client.query('ROLLBACK');
-          return { success: false, message: 'Some seats are not locked by you' };
+          await client.query("ROLLBACK");
+          return {
+            success: false,
+            message: "Some seats are not locked by you",
+          };
         }
 
         // Convert locks to booked
@@ -289,42 +322,48 @@ class SeatLockingService {
                locked_at = NULL, 
                lock_expires_at = NULL 
            WHERE seat_number = ANY($1) AND show_id = $2 AND locked_by = $3`,
-          [seatNumbers, showId, userId]
+          [seatNumbers, showId, userId],
         );
 
-        await client.query('COMMIT');
+        await client.query("COMMIT");
 
-        console.log(`✅ Successfully booked seats ${seatNumbers.join(', ')} for user ${userId}`);
+        console.log(
+          `✅ Successfully booked seats ${seatNumbers.join(", ")} for user ${userId}`,
+        );
 
         // Broadcast to all users in the show room
         for (const seatNumber of seatNumbers) {
-          io.to(`show-${showId}`).emit('seat-updated', {
+          io.to(`show-${showId}`).emit("seat-updated", {
             seatNumber,
-            status: 'booked',
-            userId: null
+            status: "booked",
+            userId: null,
           });
         }
 
-        return { success: true, message: 'Seats booked successfully' };
-
+        return { success: true, message: "Seats booked successfully" };
       } catch (error) {
-        await client.query('ROLLBACK');
+        await client.query("ROLLBACK");
         throw error;
       } finally {
         client.release();
       }
-
     } catch (error) {
-      console.error('❌ Error booking seats:', error);
-      return { success: false, message: 'Failed to book seats' };
+      console.error("❌ Error booking seats:", error);
+      return { success: false, message: "Failed to book seats" };
     }
   }
 
   /**
    * Unlock seats after failed payment
    */
-  async unlockSeatsAfterFailedPayment(seatNumbers: string[], showId: string, userId: number): Promise<void> {
-    console.log(`💳 Unlocking seats after failed payment: ${seatNumbers.join(', ')}`);
+  async unlockSeatsAfterFailedPayment(
+    seatNumbers: string[],
+    showId: string,
+    userId: number,
+  ): Promise<void> {
+    console.log(
+      `💳 Unlocking seats after failed payment: ${seatNumbers.join(", ")}`,
+    );
 
     try {
       await pool.query(
@@ -334,26 +373,30 @@ class SeatLockingService {
              locked_at = NULL, 
              lock_expires_at = NULL 
          WHERE seat_number = ANY($1) AND show_id = $2 AND locked_by = $3`,
-        [seatNumbers, showId, userId]
+        [seatNumbers, showId, userId],
       );
 
       // Broadcast to all users in the show room
       for (const seatNumber of seatNumbers) {
-        io.to(`show-${showId}`).emit('seat-updated', {
+        io.to(`show-${showId}`).emit("seat-updated", {
           seatNumber,
-          status: 'available',
-          userId: null
+          status: "available",
+          userId: null,
         });
       }
 
       console.log(`✅ Successfully unlocked seats after failed payment`);
     } catch (error) {
-      console.error('❌ Error unlocking seats after failed payment:', error);
+      console.error("❌ Error unlocking seats after failed payment:", error);
     }
   }
 
   // Private helper methods
-  private trackUserSeat(socketId: string, showId: string, seatNumber: string): void {
+  private trackUserSeat(
+    socketId: string,
+    showId: string,
+    seatNumber: string,
+  ): void {
     if (!this.userSeatMapping[socketId]) {
       this.userSeatMapping[socketId] = {};
     }
@@ -363,41 +406,58 @@ class SeatLockingService {
     this.userSeatMapping[socketId][showId].push(seatNumber);
   }
 
-  private untrackUserSeat(socketId: string, showId: string, seatNumber: string): void {
+  private untrackUserSeat(
+    socketId: string,
+    showId: string,
+    seatNumber: string,
+  ): void {
     if (this.userSeatMapping[socketId]?.[showId]) {
-      this.userSeatMapping[socketId][showId] = this.userSeatMapping[socketId][showId]
-        .filter(seat => seat !== seatNumber);
-      
+      this.userSeatMapping[socketId][showId] = this.userSeatMapping[socketId][
+        showId
+      ].filter((seat) => seat !== seatNumber);
+
       if (this.userSeatMapping[socketId][showId].length === 0) {
         delete this.userSeatMapping[socketId][showId];
       }
-      
+
       if (Object.keys(this.userSeatMapping[socketId]).length === 0) {
         delete this.userSeatMapping[socketId];
       }
     }
   }
 
-  private setLockTimeout(seatNumber: string, showId: string, userId: number): void {
+  private setLockTimeout(
+    seatNumber: string,
+    showId: string,
+    userId: number,
+  ): void {
     const timeoutKey = `${seatNumber}-${showId}-${userId}`;
-    
+
     // Clear existing timeout if any
     this.clearLockTimeout(seatNumber, showId, userId);
-    
+
     // Set new timeout
     const timeout = setTimeout(async () => {
       console.log(`⏰ Auto-unlocking seat ${seatNumber} for user ${userId}`);
-      await this.unlockSeat(seatNumber, showId, userId, 'timeout');
+      await this.unlockSeat(seatNumber, showId, userId, "timeout");
     }, this.LOCK_DURATION);
-    
+
     this.lockTimeouts.set(timeoutKey, timeout);
   }
 
-  private extendLockTimeout(seatNumber: string, showId: string, userId: number): void {
+  private extendLockTimeout(
+    seatNumber: string,
+    showId: string,
+    userId: number,
+  ): void {
     this.setLockTimeout(seatNumber, showId, userId);
   }
 
-  private clearLockTimeout(seatNumber: string, showId: string, userId: number): void {
+  private clearLockTimeout(
+    seatNumber: string,
+    showId: string,
+    userId: number,
+  ): void {
     const timeoutKey = `${seatNumber}-${showId}-${userId}`;
     const timeout = this.lockTimeouts.get(timeoutKey);
     if (timeout) {
@@ -414,4 +474,4 @@ class SeatLockingService {
   }
 }
 
-export const seatLockingService = new SeatLockingService(); 
+export const seatLockingService = new SeatLockingService();

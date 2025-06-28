@@ -1,12 +1,12 @@
-import express from 'express';
-import { 
-  getDashboardStats, 
-  getAllUsers, 
-  updateUserRole, 
-  deleteUser 
-} from '../controllers/adminController';
-import { authenticateToken } from '../middlewares/authMiddleware';
-import { requireAdmin } from '../middlewares/roleMiddleware';
+import express from "express";
+import {
+  getDashboardStats,
+  getAllUsers,
+  updateUserRole,
+  deleteUser,
+} from "../controllers/adminController";
+import { authenticateToken } from "../middlewares/authMiddleware";
+import { requireAdmin } from "../middlewares/roleMiddleware";
 
 const router = express.Router();
 
@@ -15,11 +15,11 @@ router.use(authenticateToken);
 router.use(requireAdmin);
 
 // Dashboard
-router.get('/dashboard', getDashboardStats);
+router.get("/dashboard", getDashboardStats);
 
 // User management
-router.get('/users', getAllUsers);
-router.put('/users/:userId/role', updateUserRole);
-router.delete('/users/:userId', deleteUser);
+router.get("/users", getAllUsers);
+router.put("/users/:userId/role", updateUserRole);
+router.delete("/users/:userId", deleteUser);
 
-export default router; 
+export default router;

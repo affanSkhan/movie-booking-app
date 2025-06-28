@@ -16,6 +16,7 @@ import ShowBooking from './pages/ShowBooking';
 import BookShow from './pages/BookShow';
 import Payment from './pages/Payment';
 import BookingSuccess from './pages/BookingSuccess';
+import MyBookings from './pages/MyBookings';
 import AdminLogin from './pages/AdminLogin';
 import AdminPanel from './pages/AdminPanel';
 
@@ -120,6 +121,14 @@ const AppRoutes: React.FC = () => {
               element={
                 <ProtectedRoute requireAuth>
                   <BookShow />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/my-bookings" 
+              element={
+                <ProtectedRoute requireAuth>
+                  <MyBookings />
                 </ProtectedRoute>
               } 
             />
