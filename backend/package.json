@@ -1,0 +1,33 @@
+{
+  "name": "movie-booking-backend",
+  "version": "1.0.0",
+  "description": "Movie Booking System Backend API",
+  "main": "index.ts",
+  "scripts": {
+    "dev": "bun run --watch index.ts",
+    "start": "bun run index.ts",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.0.0",
+    "bcryptjs": "^3.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "socket.io": "^4.8.1",
+    "pg": "^8.16.3",
+    "razorpay": "^2.9.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/cors": "^2.8.19",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/pg": "^8.15.4",
+    "@types/node": "^20.0.0"
+  },
+  "keywords": ["movie", "booking", "api", "express", "postgresql"],
+  "author": "Your Name",
+  "license": "MIT"
+} 
