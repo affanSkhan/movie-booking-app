@@ -152,10 +152,10 @@ const Showtimes: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading showtimes...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading showtimes...</p>
         </div>
       </div>
     );
@@ -163,14 +163,14 @@ const Showtimes: React.FC = () => {
 
   if (error || !movie) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Oops! Something went wrong</h2>
-          <p className="text-gray-600 mb-4">{error || 'Movie not found'}</p>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Oops! Something went wrong</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{error || 'Movie not found'}</p>
           <button
             onClick={() => navigate('/movies')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors"
           >
             Back to Movies
           </button>
@@ -180,16 +180,16 @@ const Showtimes: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header with Movie Banner */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Back Button */}
           <motion.button
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             onClick={() => navigate('/movies')}
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition-colors"
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 mb-4 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Movies
@@ -207,7 +207,7 @@ const Showtimes: React.FC = () => {
               <img
                 src={movie.poster_url || 'https://via.placeholder.com/120x180/1f2937/ffffff?text=No+Poster'}
                 alt={movie.title}
-                className="w-24 h-36 md:w-32 md:h-48 object-cover rounded-lg shadow-md"
+                className="w-24 h-36 md:w-32 md:h-48 object-cover rounded-lg shadow-md dark:shadow-lg"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = 'https://via.placeholder.com/120x180/1f2937/ffffff?text=No+Poster';
@@ -217,11 +217,11 @@ const Showtimes: React.FC = () => {
 
             {/* Movie Details */}
             <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
                 {movie.title}
               </h1>
               
-              <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
+              <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
                 {movie.duration && (
                   <div className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
@@ -238,7 +238,7 @@ const Showtimes: React.FC = () => {
                 </div>
               </div>
 
-              <p className="text-gray-700 text-sm line-clamp-2">
+              <p className="text-gray-700 dark:text-gray-300 text-sm line-clamp-2">
                 {movie.description || 'No description available.'}
               </p>
             </div>
@@ -247,28 +247,30 @@ const Showtimes: React.FC = () => {
       </header>
 
       {/* Filters */}
-      <section className="bg-white border-b">
+      <section className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row gap-4">
             {/* Date Filter */}
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Date</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filter by Date</label>
               <input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 min={today}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                title="Select a date to filter showtimes"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
               />
             </div>
 
             {/* Sort */}
             <div className="sm:w-48">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Sort by</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sort by</label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'time' | 'screen')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                title="Sort showtimes by time or screen"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
               >
                 <option value="time">Time</option>
                 <option value="screen">Screen</option>
@@ -286,9 +288,9 @@ const Showtimes: React.FC = () => {
             animate={{ opacity: 1 }}
             className="text-center py-12"
           >
-            <div className="text-gray-400 text-6xl mb-4">🎬</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No showtimes found</h3>
-            <p className="text-gray-600">Try selecting a different date or check back later</p>
+            <div className="text-gray-400 dark:text-gray-500 text-6xl mb-4">🎬</div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No showtimes found</h3>
+            <p className="text-gray-600 dark:text-gray-400">Try selecting a different date or check back later</p>
           </motion.div>
         ) : (
           <div className="space-y-8">
@@ -298,7 +300,7 @@ const Showtimes: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: dateIndex * 0.1 }}
-                className="bg-white rounded-xl shadow-lg overflow-hidden"
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700"
               >
                 {/* Date Header */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4">
@@ -324,14 +326,14 @@ const Showtimes: React.FC = () => {
                               y: -2,
                               transition: { duration: 0.2 }
                             }}
-                            className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-all duration-200"
+                            className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-400 transition-all duration-200"
                           >
                             {/* Show Time */}
                             <div className="text-center mb-3">
-                              <div className="text-2xl font-bold text-gray-900">
+                              <div className="text-2xl font-bold text-gray-900 dark:text-white">
                                 {formatShowTime(show.show_time)}
                               </div>
-                              <div className="text-sm text-gray-600">
+                              <div className="text-sm text-gray-600 dark:text-gray-400">
                                 {new Date(show.show_time).toLocaleDateString('en-US', {
                                   month: 'short',
                                   day: 'numeric'
@@ -341,14 +343,14 @@ const Showtimes: React.FC = () => {
 
                             {/* Screen Info */}
                             <div className="text-center mb-3">
-                              <div className="text-sm font-medium text-gray-700">
+                              <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Screen {show.screen}
                               </div>
                             </div>
 
                             {/* Availability */}
                             <div className="text-center mb-4">
-                              <div className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-2">
+                              <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
                                 <Users className="w-4 h-4" />
                                 {show.availableSeats} of {show.totalSeats} seats available
                               </div>
@@ -367,8 +369,8 @@ const Showtimes: React.FC = () => {
                               onClick={() => navigate(`/book/${show.id}`)}
                               className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
                                 show.status === 'sold-out'
-                                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                  ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                                  : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white'
                               }`}
                             >
                               {show.status === 'sold-out' ? 'Sold Out' : 'Select Seats'}

@@ -133,10 +133,10 @@ const BookShow: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading booking information...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading booking information...</p>
         </div>
       </div>
     );
@@ -144,14 +144,14 @@ const BookShow: React.FC = () => {
 
   if (error || !movie || !show) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Oops! Something went wrong</h2>
-          <p className="text-gray-600 mb-4">{error || 'Show not found'}</p>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Oops! Something went wrong</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{error || 'Show not found'}</p>
           <button
             onClick={() => navigate('/movies')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors"
           >
             Back to Movies
           </button>
@@ -163,9 +163,9 @@ const BookShow: React.FC = () => {
   const { time, date } = formatShowTime(show.show_time);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             {/* Back Button */}
@@ -173,7 +173,7 @@ const BookShow: React.FC = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               onClick={() => navigate(`/showtimes/${movie.id}`)}
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Showtimes
@@ -185,8 +185,8 @@ const BookShow: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               className="text-center"
             >
-              <h1 className="text-lg font-semibold text-gray-900">{movie.title}</h1>
-              <p className="text-sm text-gray-600">{time} • Screen {show.screen}</p>
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">{movie.title}</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{time} • Screen {show.screen}</p>
             </motion.div>
 
             {/* Placeholder for balance */}
@@ -208,7 +208,7 @@ const BookShow: React.FC = () => {
               <img
                 src={movie.poster_url || 'https://via.placeholder.com/80x120/1f2937/ffffff?text=No+Poster'}
                 alt={movie.title}
-                className="w-20 h-30 object-cover rounded-lg shadow-md"
+                className="w-20 h-30 object-cover rounded-lg shadow-md dark:shadow-lg"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = 'https://via.placeholder.com/80x120/1f2937/ffffff?text=No+Poster';
@@ -253,11 +253,11 @@ const BookShow: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-xl shadow-lg p-6"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-xl p-6 border border-gray-200 dark:border-gray-700"
             >
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-gray-900">Select Your Seats</h3>
-                <div className="text-sm text-gray-600">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Select Your Seats</h3>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
                   {selectedSeats.length} seat{selectedSeats.length !== 1 ? 's' : ''} selected
                 </div>
               </div>
@@ -274,20 +274,20 @@ const BookShow: React.FC = () => {
               {/* Seat Legend */}
               <div className="mt-6 flex flex-wrap gap-4 text-sm">
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gray-200 rounded border"></div>
-                  <span>Available</span>
+                  <div className="w-4 h-4 bg-gray-200 dark:bg-gray-600 rounded border border-gray-300 dark:border-gray-500"></div>
+                  <span className="text-gray-700 dark:text-gray-300">Available</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-blue-500 rounded border"></div>
-                  <span>Selected</span>
+                  <span className="text-gray-700 dark:text-gray-300">Selected</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-red-500 rounded border"></div>
-                  <span>Booked</span>
+                  <span className="text-gray-700 dark:text-gray-300">Booked</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-yellow-500 rounded border"></div>
-                  <span>Locked</span>
+                  <span className="text-gray-700 dark:text-gray-300">Locked</span>
                 </div>
               </div>
             </motion.div>
@@ -298,15 +298,15 @@ const BookShow: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-xl shadow-lg p-6 sticky top-8"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-xl p-6 sticky top-8 border border-gray-200 dark:border-gray-700"
             >
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">Booking Summary</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Booking Summary</h3>
 
               {/* Selected Seats */}
               <div className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">Selected Seats</h4>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3">Selected Seats</h4>
                 {selectedSeats.length === 0 ? (
-                  <p className="text-gray-500 text-sm">No seats selected</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">No seats selected</p>
                 ) : (
                   <div className="space-y-2">
                     <AnimatePresence>
@@ -316,12 +316,13 @@ const BookShow: React.FC = () => {
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: 10 }}
-                          className="flex items-center justify-between bg-blue-50 rounded-lg p-3"
+                          className="flex items-center justify-between bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-700"
                         >
-                          <span className="font-medium text-blue-900">Seat {seatNumber}</span>
+                          <span className="font-medium text-blue-900 dark:text-blue-100">Seat {seatNumber}</span>
                           <button
                             onClick={() => handleSeatDeselect(seatNumber)}
-                            className="text-blue-600 hover:text-blue-800 transition-colors"
+                            title={`Remove seat ${seatNumber}`}
+                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -333,20 +334,20 @@ const BookShow: React.FC = () => {
               </div>
 
               {/* Price Breakdown */}
-              <div className="border-t border-gray-200 pt-4 mb-6">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mb-6">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Price per seat:</span>
-                    <span>₹{seatPrice}</span>
+                    <span className="text-gray-700 dark:text-gray-300">Price per seat:</span>
+                    <span className="text-gray-900 dark:text-white">₹{seatPrice}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Number of seats:</span>
-                    <span>{selectedSeats.length}</span>
+                    <span className="text-gray-700 dark:text-gray-300">Number of seats:</span>
+                    <span className="text-gray-900 dark:text-white">{selectedSeats.length}</span>
                   </div>
-                  <div className="border-t border-gray-200 pt-2">
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
                     <div className="flex justify-between font-semibold text-lg">
-                      <span>Total:</span>
-                      <span>₹{totalPrice}</span>
+                      <span className="text-gray-900 dark:text-white">Total:</span>
+                      <span className="text-gray-900 dark:text-white">₹{totalPrice}</span>
                     </div>
                   </div>
                 </div>
@@ -360,8 +361,8 @@ const BookShow: React.FC = () => {
                 onClick={handleProceedToPayment}
                 className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
                   selectedSeats.length === 0
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
+                    ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white shadow-lg hover:shadow-xl'
                 }`}
               >
                 <CreditCard className="w-5 h-5" />
@@ -369,7 +370,7 @@ const BookShow: React.FC = () => {
               </motion.button>
 
               {/* Additional Info */}
-              <div className="mt-4 text-xs text-gray-500 text-center">
+              <div className="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center">
                 <p>• Seats are held for 10 minutes</p>
                 <p>• Payment required to confirm booking</p>
               </div>

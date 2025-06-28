@@ -44,13 +44,13 @@ const ResetPassword: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
       {/* Left Side - Welcome Section */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8 }}
-        className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 text-white p-12 flex-col justify-center relative overflow-hidden"
+        className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white p-12 flex-col justify-center relative overflow-hidden"
       >
         <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-400 opacity-20 rounded-full blur-3xl -z-10" />
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-teal-400 opacity-20 rounded-full blur-3xl -z-10" />
@@ -88,12 +88,12 @@ const ResetPassword: React.FC = () => {
         </motion.div>
       </motion.div>
 
-      {/* Right Side - Form */}
+      {/* Right Side - Reset Password Form */}
       <motion.div
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8 }}
-        className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50"
+        className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white dark:bg-gray-800"
       >
         <div className="w-full max-w-md">
           <div className="lg:hidden text-center mb-8">
@@ -106,11 +106,11 @@ const ResetPassword: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="bg-white rounded-2xl shadow-xl p-8"
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8"
           >
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">New Password</h2>
-              <p className="text-gray-600">Enter your new password below</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Reset Password</h2>
+              <p className="text-gray-600 dark:text-gray-400">Enter your new password</p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -171,7 +171,7 @@ const ResetPassword: React.FC = () => {
                 disabled={loading}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 relative overflow-hidden group"
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 relative overflow-hidden group"
               >
                 {loading ? (
                   <div className="flex items-center justify-center">
@@ -181,25 +181,22 @@ const ResetPassword: React.FC = () => {
                 ) : (
                   <>
                     <span className="relative z-10">Reset Password</span>
-                    <span className="absolute inset-0 bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
+                    <span className="absolute inset-0 bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
                   </>
                 )}
               </motion.button>
             </form>
 
             {/* Links */}
-            <div className="mt-8 text-center space-y-2">
-              <p className="text-sm text-gray-600">
+            <div className="mt-8 text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Remember your password?{' '}
                 <Link
                   to="/login"
-                  className="font-medium text-emerald-600 hover:text-emerald-500 transition-colors"
+                  className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                 >
                   Sign in
                 </Link>
-              </p>
-              <p className="text-xs text-gray-500">
-                Need help? Contact our support team
               </p>
             </div>
           </motion.div>

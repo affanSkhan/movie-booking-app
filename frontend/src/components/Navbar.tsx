@@ -1,9 +1,12 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Moon, Sun } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContextInstance';
+import { useDarkMode } from '../hooks/useDarkMode';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
+  const { darkMode, setDarkMode } = useDarkMode();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -11,8 +14,12 @@ const Navbar: React.FC = () => {
     navigate('/');
   };
 
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
   return (
-    <nav className="bg-gray-800 text-white shadow-lg">
+    <nav className="bg-gray-800 dark:bg-gray-900 text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -28,6 +35,19 @@ const Navbar: React.FC = () => {
             >
               Movies
             </Link>
+
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {darkMode ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
+            </button>
 
             {user ? (
               <>
@@ -51,7 +71,7 @@ const Navbar: React.FC = () => {
                   <span className="text-gray-300 text-sm">
                     Welcome, {user.name}
                   </span>
-                  <span className="text-yellow-400 text-xs bg-gray-700 px-2 py-1 rounded">
+                  <span className="text-yellow-400 text-xs bg-gray-700 dark:bg-gray-600 px-2 py-1 rounded">
                     Role: {user.role}
                   </span>
                   <button

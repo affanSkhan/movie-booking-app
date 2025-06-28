@@ -163,10 +163,10 @@ const ShowBooking: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading show details...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading show details...</p>
         </div>
       </div>
     );
@@ -174,14 +174,14 @@ const ShowBooking: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">❌</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Error</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
           <button
             onClick={() => navigate('/')}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
           >
             Go Home
           </button>
@@ -192,20 +192,20 @@ const ShowBooking: React.FC = () => {
 
   if (bookingSuccess) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-green-500 text-6xl mb-4">✅</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Booking Successful!</h2>
-          <p className="text-gray-600 mb-4">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Booking Successful!</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             Your seats have been booked successfully.
           </p>
-          <div className="bg-white p-4 rounded-lg shadow mb-4">
-            <p><strong>Payment ID:</strong> {paymentId}</p>
-            <p><strong>Order ID:</strong> {orderId}</p>
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow dark:shadow-xl mb-4 border border-gray-200 dark:border-gray-700">
+            <p className="text-gray-900 dark:text-white"><strong>Payment ID:</strong> {paymentId}</p>
+            <p className="text-gray-900 dark:text-white"><strong>Order ID:</strong> {orderId}</p>
           </div>
           <button
             onClick={() => navigate('/')}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
           >
             Go Home
           </button>
@@ -216,13 +216,13 @@ const ShowBooking: React.FC = () => {
 
   if (!show) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">❌</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Show Not Found</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Show Not Found</h2>
           <button
             onClick={() => navigate('/')}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
           >
             Go Home
           </button>
@@ -235,25 +235,25 @@ const ShowBooking: React.FC = () => {
   const totalAmount = selectedSeats.length * 500;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-xl p-6 mb-8 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{movie?.title || 'Movie Booking'}</h1>
-              <div className="text-gray-600 mt-2">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{movie?.title || 'Movie Booking'}</h1>
+              <div className="text-gray-600 dark:text-gray-400 mt-2">
                 <p>📅 {date}</p>
                 <p>🕒 {time} • Screen {show.screen}</p>
                 <p>💰 Price per Seat: ₹500</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600">Selected Seats</p>
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Selected Seats</p>
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {selectedSeats.length}
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Total: ₹{totalAmount}
               </p>
             </div>
@@ -261,15 +261,15 @@ const ShowBooking: React.FC = () => {
         </div>
 
         {/* Connection Status */}
-        <div className="bg-white rounded-lg shadow-md p-4 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-xl p-4 mb-8 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span className="text-sm font-medium">
+              <span className="text-sm font-medium text-gray-900 dark:text-white">
                 {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
               </span>
             </div>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
               <p>Selected Seats: {selectedSeats.join(', ') || 'None'}</p>
               <p>Total Amount: ₹{totalAmount}</p>
             </div>
@@ -279,8 +279,8 @@ const ShowBooking: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Seat Map */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4">Select Your Seats</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-xl p-6 border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Select Your Seats</h2>
               <SeatMap
                 showId={showId!}
                 seats={seats}
@@ -304,20 +304,20 @@ const ShowBooking: React.FC = () => {
         </div>
 
         {/* Instructions */}
-        <div className="bg-white rounded-lg shadow-md p-6 mt-8">
-          <h3 className="text-lg font-semibold mb-4">How to Book Seats</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-xl p-6 mt-8 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">How to Book Seats</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
             <div className="space-y-2">
-              <h4 className="font-medium text-gray-900">1. Select Seats</h4>
-              <p className="text-gray-600">Click on available seats (🟢) to select them. Selected seats will turn orange (🟠).</p>
+              <h4 className="font-medium text-gray-900 dark:text-white">1. Select Seats</h4>
+              <p className="text-gray-600 dark:text-gray-400">Click on available seats (🟢) to select them. Selected seats will turn orange (🟠).</p>
             </div>
             <div className="space-y-2">
-              <h4 className="font-medium text-gray-900">2. Unselect if Needed</h4>
-              <p className="text-gray-600">Click on your selected seats (🟠) again to unselect them. They'll return to available (🟢).</p>
+              <h4 className="font-medium text-gray-900 dark:text-white">2. Unselect if Needed</h4>
+              <p className="text-gray-600 dark:text-gray-400">Click on your selected seats (🟠) again to unselect them. They'll return to available (🟢).</p>
             </div>
             <div className="space-y-2">
-              <h4 className="font-medium text-gray-900">3. Complete Payment</h4>
-              <p className="text-gray-600">Once satisfied with your selection, proceed to payment. Seats are held for 3 minutes during payment.</p>
+              <h4 className="font-medium text-gray-900 dark:text-white">3. Complete Payment</h4>
+              <p className="text-gray-600 dark:text-gray-400">Once satisfied with your selection, proceed to payment. Seats are held for 3 minutes during payment.</p>
             </div>
           </div>
         </div>

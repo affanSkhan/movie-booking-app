@@ -260,15 +260,15 @@ const SeatMap: React.FC<SeatMapProps> = ({
   if (!seats || seats.length === 0) {
     return (
       <div className="space-y-4">
-        <div className="bg-gray-100 p-6 rounded-lg text-center">
-          <div className="text-gray-400 text-6xl mb-4">🪑</div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <div className="bg-gray-100 dark:bg-gray-700 p-6 rounded-lg text-center border border-gray-200 dark:border-gray-600">
+          <div className="text-gray-400 dark:text-gray-500 text-6xl mb-4">🪑</div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             No Seats Available
           </h3>
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             Seats for this show haven't been configured yet.
           </p>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
             <p>Show ID: {showId}</p>
             <p>Seats Count: {seats?.length || 0}</p>
             <p>Socket Connected: {isConnected ? 'Yes' : 'No'}</p>
@@ -298,7 +298,7 @@ const SeatMap: React.FC<SeatMapProps> = ({
     <div className="space-y-6">
       {/* Screen */}
       <div className="text-center">
-        <div className="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg inline-block">
+        <div className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg inline-block border border-gray-400 dark:border-gray-500">
           🎬 SCREEN
         </div>
       </div>
@@ -307,7 +307,7 @@ const SeatMap: React.FC<SeatMapProps> = ({
       <div className="space-y-2">
         {sortedRows.map((row) => (
           <div key={row} className="flex justify-center space-x-1">
-            <div className="w-8 h-8 flex items-center justify-center text-xs font-medium text-gray-600">
+            <div className="w-8 h-8 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-400">
               {String.fromCharCode(64 + row)} {/* A, B, C, etc. */}
             </div>
             {seatsByRow[row]
@@ -330,7 +330,7 @@ const SeatMap: React.FC<SeatMapProps> = ({
                       ${isClickable && !processingSeats.has(seat.seat_number) ? 'cursor-pointer' : 'cursor-not-allowed'}
                       ${isClickable && !processingSeats.has(seat.seat_number) ? 'hover:scale-105' : ''}
                       ${processingSeats.has(seat.seat_number) ? 'animate-pulse opacity-75' : ''}
-                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800
                     `}
                   >
                     {processingSeats.has(seat.seat_number) ? '⏳' : seat.col_number}
@@ -342,30 +342,30 @@ const SeatMap: React.FC<SeatMapProps> = ({
       </div>
 
       {/* Legend */}
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="text-sm font-semibold text-gray-900 mb-3">Seat Legend</h4>
+      <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+        <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Seat Legend</h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-green-500 rounded"></div>
-            <span>🟢 Available</span>
+            <span className="text-gray-700 dark:text-gray-300">🟢 Available</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-orange-500 rounded"></div>
-            <span>🟠 Selected by You</span>
+            <span className="text-gray-700 dark:text-gray-300">🟠 Selected by You</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-red-500 rounded"></div>
-            <span>🔴 Locked by Others</span>
+            <span className="text-gray-700 dark:text-gray-300">🔴 Locked by Others</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-gray-800 rounded"></div>
-            <span>⚫ Booked</span>
+            <div className="w-4 h-4 bg-gray-800 dark:bg-gray-900 rounded"></div>
+            <span className="text-gray-700 dark:text-gray-300">⚫ Booked</span>
           </div>
         </div>
       </div>
 
       {/* Connection Status */}
-      <div className="text-center text-sm text-gray-600">
+      <div className="text-center text-sm text-gray-600 dark:text-gray-400">
         <div className="flex items-center justify-center space-x-2">
           <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
           <span>{isConnected ? '🟢 Connected - Real-time updates active' : '🔴 Disconnected - No real-time updates'}</span>

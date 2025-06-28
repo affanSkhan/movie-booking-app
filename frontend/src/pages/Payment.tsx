@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, CreditCard, Clock, MapPin, Calendar } from 'lucide-react';
+import { ArrowLeft, Clock, MapPin, Calendar } from 'lucide-react';
 import PaymentForm from '../components/PaymentForm';
 import Toast from '../components/ui/Toast';
 import type { ToastType } from '../components/ui/Toast';
@@ -93,10 +93,10 @@ const Payment: React.FC = () => {
 
   if (!paymentData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading payment details...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading payment details...</p>
         </div>
       </div>
     );
@@ -105,9 +105,9 @@ const Payment: React.FC = () => {
   const { time, date } = formatShowTime(paymentData.show.show_time);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             {/* Back Button */}
@@ -115,7 +115,7 @@ const Payment: React.FC = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               onClick={() => navigate(`/book/${paymentData.showId}`)}
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Booking
@@ -127,8 +127,8 @@ const Payment: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               className="text-center"
             >
-              <h1 className="text-lg font-semibold text-gray-900">Complete Payment</h1>
-              <p className="text-sm text-gray-600">Secure payment powered by Razorpay</p>
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Complete Payment</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Secure payment powered by Razorpay</p>
             </motion.div>
 
             {/* Placeholder for balance */}
@@ -145,7 +145,7 @@ const Payment: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-xl shadow-lg overflow-hidden"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700"
             >
               {/* Movie Banner */}
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
@@ -155,7 +155,7 @@ const Payment: React.FC = () => {
                     <img
                       src={paymentData.movie.poster_url || 'https://via.placeholder.com/80x120/1f2937/ffffff?text=No+Poster'}
                       alt={paymentData.movie.title}
-                      className="w-20 h-30 object-cover rounded-lg shadow-md"
+                      className="w-20 h-30 object-cover rounded-lg shadow-md dark:shadow-lg"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = 'https://via.placeholder.com/80x120/1f2937/ffffff?text=No+Poster';
@@ -193,17 +193,17 @@ const Payment: React.FC = () => {
 
               {/* Booking Details */}
               <div className="p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Booking Summary</h3>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Booking Summary</h3>
                 
                 <div className="space-y-4">
                   {/* Selected Seats */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Selected Seats</h4>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Selected Seats</h4>
                     <div className="flex flex-wrap gap-2">
                       {paymentData.selectedSeats.map((seat) => (
                         <span
                           key={seat}
-                          className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
+                          className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm font-medium border border-blue-200 dark:border-blue-700"
                         >
                           Seat {seat}
                         </span>
@@ -212,30 +212,30 @@ const Payment: React.FC = () => {
                   </div>
 
                   {/* Price Breakdown */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Price Breakdown</h4>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Price Breakdown</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>Price per seat:</span>
-                        <span>₹{paymentData.seatPrice}</span>
+                        <span className="text-gray-700 dark:text-gray-300">Price per seat:</span>
+                        <span className="text-gray-900 dark:text-white">₹{paymentData.seatPrice}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span>Number of seats:</span>
-                        <span>{paymentData.selectedSeats.length}</span>
+                        <span className="text-gray-700 dark:text-gray-300">Number of seats:</span>
+                        <span className="text-gray-900 dark:text-white">{paymentData.selectedSeats.length}</span>
                       </div>
-                      <div className="border-t border-gray-200 pt-2">
+                      <div className="border-t border-gray-200 dark:border-gray-600 pt-2">
                         <div className="flex justify-between font-semibold text-lg">
-                          <span>Total Amount:</span>
-                          <span>₹{paymentData.totalPrice}</span>
+                          <span className="text-gray-900 dark:text-white">Total Amount:</span>
+                          <span className="text-gray-900 dark:text-white">₹{paymentData.totalPrice}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Important Notes */}
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <h4 className="font-medium text-yellow-800 mb-2">Important Information</h4>
-                    <ul className="text-sm text-yellow-700 space-y-1">
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+                    <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">Important Information</h4>
+                    <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
                       <li>• Seats are held for 10 minutes during payment</li>
                       <li>• Payment is processed securely via Razorpay</li>
                       <li>• You'll receive a confirmation email after successful payment</li>

@@ -11,9 +11,9 @@ interface ToastProps {
 }
 
 const toastColors = {
-  success: 'bg-green-600 text-white',
-  error: 'bg-red-600 text-white',
-  info: 'bg-blue-600 text-white',
+  success: 'bg-green-600 dark:bg-green-500 text-white',
+  error: 'bg-red-600 dark:bg-red-500 text-white',
+  info: 'bg-blue-600 dark:bg-blue-500 text-white',
 };
 
 const Toast: React.FC<ToastProps> = ({ message, type = 'info', onClose, duration = 3500 }) => {
@@ -24,7 +24,7 @@ const Toast: React.FC<ToastProps> = ({ message, type = 'info', onClose, duration
 
   return createPortal(
     <div
-      className={`fixed top-6 right-6 z-[9999] px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-fade-in-up ${toastColors[type]}`}
+      className={`fixed top-6 right-6 z-[9999] px-6 py-4 rounded-lg shadow-lg dark:shadow-xl flex items-center gap-3 animate-fade-in-up ${toastColors[type]}`}
       role="alert"
       aria-live="assertive"
     >
@@ -40,7 +40,7 @@ const Toast: React.FC<ToastProps> = ({ message, type = 'info', onClose, duration
       <span className="font-medium">{message}</span>
       <button
         onClick={onClose}
-        className="ml-4 text-white hover:text-gray-200 focus:outline-none"
+        className="ml-4 text-white hover:text-gray-200 dark:hover:text-gray-100 focus:outline-none transition-colors"
         aria-label="Close toast"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>

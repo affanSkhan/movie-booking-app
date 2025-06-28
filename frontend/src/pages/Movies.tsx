@@ -92,10 +92,10 @@ const Movies: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading movies...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading movies...</p>
         </div>
       </div>
     );
@@ -103,11 +103,11 @@ const Movies: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Oops! Something went wrong</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">Oops! Something went wrong</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
@@ -120,9 +120,9 @@ const Movies: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -130,10 +130,10 @@ const Movies: React.FC = () => {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
               Now Showing
             </h1>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-600 dark:text-gray-400">
               Discover and book your favorite movies
             </p>
           </motion.div>
@@ -141,7 +141,7 @@ const Movies: React.FC = () => {
       </header>
 
       {/* Search and Filters */}
-      <section className="bg-white border-b">
+      <section className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
@@ -152,7 +152,7 @@ const Movies: React.FC = () => {
                 placeholder="Search movies by title or description..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
@@ -164,7 +164,7 @@ const Movies: React.FC = () => {
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 min={today}
-                className="pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
@@ -174,7 +174,7 @@ const Movies: React.FC = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'title' | 'duration' | 'newest')}
-                className="pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+                className="pl-10 pr-8 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
               >
                 <option value="newest">Newest First</option>
                 <option value="title">Title A-Z</option>
@@ -194,8 +194,8 @@ const Movies: React.FC = () => {
             className="text-center py-12"
           >
             <div className="text-gray-400 text-6xl mb-4">🎬</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No movies found</h3>
-            <p className="text-gray-600">Try adjusting your search or filters</p>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No movies found</h3>
+            <p className="text-gray-600 dark:text-gray-400">Try adjusting your search or filters</p>
           </motion.div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -211,7 +211,7 @@ const Movies: React.FC = () => {
                     y: -8,
                     transition: { duration: 0.2 }
                   }}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden group cursor-pointer"
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden group cursor-pointer"
                   onClick={() => navigate(`/showtimes/${movie.id}`)}
                 >
                   {/* Poster */}
@@ -229,8 +229,8 @@ const Movies: React.FC = () => {
                     {/* Overlay with show count */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <div className="absolute bottom-4 left-4 right-4">
-                        <div className="bg-white/90 backdrop-blur-sm rounded-lg p-3">
-                          <p className="text-sm font-medium text-gray-900">
+                        <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-3">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
                             {getShowsCount(movie.id)} showtimes available
                           </p>
                         </div>
@@ -254,16 +254,16 @@ const Movies: React.FC = () => {
 
                   {/* Content */}
                   <div className="p-4">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                    <h3 className="text-lg font-bold mb-2 text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       {movie.title}
                     </h3>
                     
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
                       {movie.description || 'No description available.'}
                     </p>
 
                     {/* Movie details */}
-                    <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-4">
                       <span>Action • Drama</span>
                       <span>English</span>
                     </div>
@@ -291,7 +291,7 @@ const Movies: React.FC = () => {
 
       {/* Results count */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-        <p className="text-gray-600 text-sm">
+        <p className="text-gray-600 dark:text-gray-400 text-sm">
           Showing {filteredMovies.length} of {movies.length} movies
         </p>
       </div>

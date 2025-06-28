@@ -38,7 +38,7 @@ const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
       {/* Left Side - Welcome Section */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
@@ -87,7 +87,7 @@ const ForgotPassword: React.FC = () => {
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8 }}
-        className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50"
+        className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white dark:bg-gray-800"
       >
         <div className="w-full max-w-md">
           <div className="lg:hidden text-center mb-8">
@@ -100,11 +100,11 @@ const ForgotPassword: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="bg-white rounded-2xl shadow-xl p-8"
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8"
           >
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Reset Password</h2>
-              <p className="text-gray-600">Enter your email address below</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Forgot Password?</h2>
+              <p className="text-gray-600 dark:text-gray-400">Enter your email to reset</p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -157,16 +157,16 @@ const ForgotPassword: React.FC = () => {
 
             {/* Links */}
             <div className="mt-8 text-center space-y-2">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Remember your password?{' '}
                 <Link
                   to="/login"
-                  className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                  className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                 >
                   Sign in
                 </Link>
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Need help? Contact our support team
               </p>
             </div>

@@ -131,34 +131,34 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h3 className="text-lg font-semibold mb-4">Payment Details</h3>
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md dark:shadow-xl border border-gray-200 dark:border-gray-700">
+      <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Payment Details</h3>
       
       <div className="space-y-4">
         <div className="flex justify-between">
-          <span>Selected Seats:</span>
-          <span className="font-medium">{selectedSeats.join(', ')}</span>
+          <span className="text-gray-700 dark:text-gray-300">Selected Seats:</span>
+          <span className="font-medium text-gray-900 dark:text-white">{selectedSeats.join(', ')}</span>
         </div>
         
         <div className="flex justify-between">
-          <span>Number of Seats:</span>
-          <span className="font-medium">{selectedSeats.length}</span>
+          <span className="text-gray-700 dark:text-gray-300">Number of Seats:</span>
+          <span className="font-medium text-gray-900 dark:text-white">{selectedSeats.length}</span>
         </div>
         
         <div className="flex justify-between">
-          <span>Price per Seat:</span>
-          <span className="font-medium">₹500</span>
+          <span className="text-gray-700 dark:text-gray-300">Price per Seat:</span>
+          <span className="font-medium text-gray-900 dark:text-white">₹500</span>
         </div>
         
-        <div className="border-t pt-4">
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
           <div className="flex justify-between text-lg font-semibold">
-            <span>Total Amount:</span>
-            <span>₹{amount}</span>
+            <span className="text-gray-900 dark:text-white">Total Amount:</span>
+            <span className="text-gray-900 dark:text-white">₹{amount}</span>
           </div>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded">
             {error}
           </div>
         )}
@@ -166,12 +166,12 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         <button
           onClick={handlePayment}
           disabled={loading || selectedSeats.length === 0}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          className="w-full bg-blue-600 dark:bg-blue-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? 'Processing...' : 'Proceed to Payment'}
         </button>
 
-        <div className="text-sm text-gray-600 text-center">
+        <div className="text-sm text-gray-600 dark:text-gray-400 text-center">
           <p>🔒 Secure payment powered by Razorpay</p>
           <p>⏰ Seats will be held for 3 minutes during payment</p>
         </div>

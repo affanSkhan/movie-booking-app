@@ -73,10 +73,10 @@ const MovieDetails: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading movie details...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading movie details...</p>
         </div>
       </div>
     );
@@ -84,14 +84,14 @@ const MovieDetails: React.FC = () => {
 
   if (error || !movie) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-600 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Oops!</h2>
-          <p className="text-gray-600 mb-4">{error || 'Movie not found'}</p>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Oops!</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{error || 'Movie not found'}</p>
           <button
             onClick={() => navigate('/')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors"
           >
             Back to Movies
           </button>
@@ -103,9 +103,9 @@ const MovieDetails: React.FC = () => {
   const defaultPoster = 'https://via.placeholder.com/400x600/1f2937/ffffff?text=No+Poster';
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
           <div className="md:flex">
             {/* Movie Poster */}
             <div className="md:w-1/3">
@@ -123,31 +123,31 @@ const MovieDetails: React.FC = () => {
             {/* Movie Details */}
             <div className="md:w-2/3 p-6">
               <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                   {movie.title}
                 </h1>
                 
                 {movie.duration && (
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
                     Duration: {Math.floor(movie.duration / 60)}h {movie.duration % 60}m
                   </p>
                 )}
 
-                <p className="text-gray-700 leading-relaxed">
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                   {movie.description || 'No description available.'}
                 </p>
               </div>
 
               {/* Showtimes */}
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                   🎭 Available Showtimes
                 </h2>
 
                 {shows.length === 0 ? (
                   <div className="text-center py-8">
-                    <div className="text-gray-400 text-4xl mb-2">🎭</div>
-                    <p className="text-gray-600">No showtimes available for this movie.</p>
+                    <div className="text-gray-400 dark:text-gray-500 text-4xl mb-2">🎭</div>
+                    <p className="text-gray-600 dark:text-gray-400">No showtimes available for this movie.</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -156,18 +156,18 @@ const MovieDetails: React.FC = () => {
                       return (
                         <div
                           key={show.id}
-                          className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                          className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md dark:hover:shadow-lg transition-shadow cursor-pointer bg-gray-50 dark:bg-gray-700"
                           onClick={() => handleShowSelect(show.id)}
                         >
                           <div className="text-center">
-                            <p className="text-sm text-gray-600 mb-1">{date}</p>
-                            <p className="text-lg font-semibold text-gray-900 mb-2">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{date}</p>
+                            <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                               {time}
                             </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                               Screen {show.screen}
                             </p>
-                            <button className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors">
+                            <button className="mt-3 w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors">
                               Select Seats
                             </button>
                           </div>
