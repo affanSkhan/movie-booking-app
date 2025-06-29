@@ -42,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Menu Button */}
       <button
         onClick={onMobileMenuToggle}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 glass rounded-xl shadow-soft-dark border border-border/50"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl shadow-soft-dark border border-border/50"
         aria-label="Toggle mobile menu"
       >
         {isMobileMenuOpen ? (
@@ -68,7 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className={`
           fixed lg:static inset-y-0 left-0 z-40
-          w-64 glass border-r border-border/50
+          w-64 border-r border-border/50
           transform lg:translate-x-0 transition-transform duration-300 ease-in-out
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}

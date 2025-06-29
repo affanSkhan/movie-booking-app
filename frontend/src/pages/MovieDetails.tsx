@@ -103,7 +103,7 @@ const MovieDetails: React.FC = () => {
   const defaultPoster = 'https://via.placeholder.com/400x600/1f2937/ffffff?text=No+Poster';
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
           <div className="md:flex">

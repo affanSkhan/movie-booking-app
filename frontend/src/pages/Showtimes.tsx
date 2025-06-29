@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { moviesAPI, showsAPI } from '../services/api';
-import { Clock, Calendar, MapPin, Users, Film, ArrowLeft } from 'lucide-react';
+import { Clock, Calendar, MapPin, Users, Film } from 'lucide-react';
 
 interface Movie {
   id: number;
@@ -223,36 +223,17 @@ const Showtimes: React.FC = () => {
           <div className="text-destructive text-6xl mb-4">⚠️</div>
           <h2 className="text-xl font-semibold text-foreground mb-2">Oops! Something went wrong</h2>
           <p className="text-muted-foreground mb-6">{error || 'Movie not found'}</p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/movies')}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-xl font-medium transition-colors duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
-          >
-            Back to Movies
-          </motion.button>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 mt-16">
       {/* Enhanced Header with Movie Banner */}
       <header className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border-b border-border/50">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Enhanced Back Button */}
-          <motion.button
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            onClick={() => navigate('/movies')}
-            className="flex items-center gap-2 text-primary hover:text-primary/80 mb-6 transition-colors duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-lg px-3 py-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Movies
-          </motion.button>
-
           {/* Enhanced Movie Info */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}

@@ -137,7 +137,7 @@ const Movies: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 mt-16">
       {/* Enhanced Header */}
       <header className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border-b border-border/50">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>

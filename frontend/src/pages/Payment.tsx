@@ -116,23 +116,12 @@ const Payment: React.FC = () => {
   const { time, date } = formatShowTime(paymentData.show.show_time);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 mt-16">
       {/* Enhanced Header */}
       <header className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border-b border-border/50">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
-            {/* Enhanced Back Button */}
-            <motion.button
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              onClick={() => navigate(`/book/${paymentData.showId}`)}
-              className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-lg px-3 py-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Booking
-            </motion.button>
-
             {/* Enhanced Page Title */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -162,7 +151,7 @@ const Payment: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-card border border-border/50 rounded-2xl shadow-lg overflow-hidden backdrop-blur-sm"
+              className="bg-card border border-border/50 rounded-2xl shadow-lg overflow-hidden"
             >
               {/* Enhanced Movie Banner */}
               <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-8">
@@ -217,7 +206,7 @@ const Payment: React.FC = () => {
                 
                 <div className="space-y-6">
                   {/* Enhanced Selected Seats */}
-                  <div className="bg-background/50 dark:bg-background/30 rounded-xl p-6 border border-border/50 backdrop-blur-sm">
+                  <div className="bg-background/50 dark:bg-background/30 rounded-xl p-6 border border-border/50">
                     <h4 className="font-medium text-foreground mb-4">Selected Seats</h4>
                     <div className="flex flex-wrap gap-3">
                       {paymentData.selectedSeats.map((seat) => (
@@ -232,7 +221,7 @@ const Payment: React.FC = () => {
                   </div>
 
                   {/* Enhanced Price Breakdown */}
-                  <div className="bg-background/50 dark:bg-background/30 rounded-xl p-6 border border-border/50 backdrop-blur-sm">
+                  <div className="bg-background/50 dark:bg-background/30 rounded-xl p-6 border border-border/50">
                     <h4 className="font-medium text-foreground mb-4">Price Breakdown</h4>
                     <div className="space-y-3">
                       <div className="flex justify-between text-sm">

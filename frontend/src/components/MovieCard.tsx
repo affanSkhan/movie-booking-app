@@ -42,7 +42,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
 
         {/* Duration badge */}
         {movie.duration && (
-          <div className="absolute top-3 right-3 glass px-2 py-1 rounded-full flex items-center space-x-1">
+          <div className="absolute top-3 right-3 px-2 py-1 rounded-full flex items-center space-x-1">
             <Clock className="w-3 h-3 text-white" />
             <span className="text-xs text-white font-medium">
               {Math.floor(movie.duration / 60)}h {movie.duration % 60}m
@@ -51,7 +51,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
         )}
 
         {/* Rating badge */}
-        <div className="absolute top-3 left-3 glass px-2 py-1 rounded-full flex items-center space-x-1">
+        <div className="absolute top-3 left-3 px-2 py-1 rounded-full flex items-center space-x-1">
           <Star className="w-3 h-3 text-yellow-400" fill="currentColor" />
           <span className="text-xs text-white font-medium">
             {(Math.random() * 2 + 3).toFixed(1)}

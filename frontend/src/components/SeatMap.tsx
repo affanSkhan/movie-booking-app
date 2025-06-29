@@ -19,6 +19,7 @@ interface SeatMapProps {
   onSeatSelect: (seatNumber: string) => void;
   onSeatDeselect: (seatNumber: string) => void;
   selectedSeats: string[];
+  hideLegend?: boolean;
 }
 
 const SeatMap: React.FC<SeatMapProps> = ({
@@ -27,6 +28,7 @@ const SeatMap: React.FC<SeatMapProps> = ({
   onSeatSelect,
   onSeatDeselect,
   selectedSeats,
+  hideLegend = false,
 }) => {
   const { socket, joinShow, leaveShow, lockSeat, unlockSeat, isConnected } = useSocket();
   const { user } = useAuth();
@@ -342,27 +344,29 @@ const SeatMap: React.FC<SeatMapProps> = ({
       </div>
 
       {/* Legend */}
-      <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-        <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Seat Legend</h4>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-green-500 rounded"></div>
-            <span className="text-gray-700 dark:text-gray-300"> Available</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-orange-500 rounded"></div>
-            <span className="text-gray-700 dark:text-gray-300"> Selected by You</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-red-500 rounded"></div>
-            <span className="text-gray-700 dark:text-gray-300"> Locked by Others</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-gray-800 dark:bg-gray-900 rounded"></div>
-            <span className="text-gray-700 dark:text-gray-300"> Booked</span>
+      {!hideLegend && (
+        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Seat Legend</h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-green-500 rounded"></div>
+              <span className="text-gray-700 dark:text-gray-300"> Available</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-orange-500 rounded"></div>
+              <span className="text-gray-700 dark:text-gray-300"> Selected by You</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-red-500 rounded"></div>
+              <span className="text-gray-700 dark:text-gray-300"> Locked by Others</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 bg-gray-800 dark:bg-gray-900 rounded"></div>
+              <span className="text-gray-700 dark:text-gray-300"> Booked</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Connection Status */}
       <div className="text-center text-sm text-gray-600 dark:text-gray-400">

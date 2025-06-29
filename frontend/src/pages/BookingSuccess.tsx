@@ -28,7 +28,7 @@ const BookingSuccess: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center">
         <motion.div 
-          className="text-center bg-card border border-border/50 rounded-2xl p-8 shadow-lg backdrop-blur-sm"
+          className="text-center bg-card border border-border/50 rounded-2xl p-8 shadow-lg"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
@@ -52,10 +52,10 @@ const BookingSuccess: React.FC = () => {
   const { date, time } = formatShowTime(show.show_time);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 mt-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <motion.div 
-          className="bg-card border border-border/50 rounded-2xl shadow-lg p-8 text-center backdrop-blur-sm"
+          className="bg-card border border-border/50 rounded-2xl shadow-lg p-8 text-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -92,7 +92,7 @@ const BookingSuccess: React.FC = () => {
 
           {/* Enhanced Booking Details */}
           <motion.div 
-            className="bg-background/50 dark:bg-background/30 rounded-xl p-8 mb-8 text-left border border-border/50 backdrop-blur-sm"
+            className="bg-background/50 dark:bg-background/30 rounded-xl p-8 mb-8 text-left border border-border/50"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}

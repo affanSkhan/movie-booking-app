@@ -35,7 +35,7 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/20 dark:border-gray-800/20">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 border-b border-white/20 dark:border-gray-800/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -194,7 +194,7 @@ const Navbar: React.FC = () => {
 
       {/* Mobile Navigation */}
       {isMobileMenuOpen && (
-        <div className="md:hidden glass border-t border-white/20 dark:border-gray-800/20 animate-slide-up">
+        <div className="md:hidden border-t border-white/20 dark:border-gray-800/20 animate-slide-up bg-white/80 dark:bg-gray-900/80">
           <div className="px-4 py-2 space-y-1">
             <Link
               to="/"
@@ -281,7 +281,7 @@ const Navbar: React.FC = () => {
       {/* Backdrop for mobile menu */}
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+          className="fixed left-0 right-0 top-16 bottom-0 bg-black/20 z-30 md:hidden"
           onClick={closeMenus}
         />
       )}

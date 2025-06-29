@@ -111,7 +111,7 @@ const ForgotPassword: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="bg-card border border-border/50 rounded-2xl shadow-lg p-8 backdrop-blur-sm"
+            className="bg-card border border-border/50 rounded-2xl shadow-lg p-8"
           >
             <div className="text-center mb-8">
               <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">Forgot Password?</h2>

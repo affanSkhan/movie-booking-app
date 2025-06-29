@@ -89,9 +89,9 @@
 
 @layer components {
   /* Glass morphism effect */
-  .glass {
+  /* .glass {
     @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-white/20 dark:border-gray-800/20;
-  }
+  } */
 
   /* Gradient backgrounds */
   .gradient-primary {
@@ -171,15 +171,14 @@
   }
 
   /* Backdrop blur utilities */
-  .backdrop-blur-xs {
+  /* .backdrop-blur-xs {
     -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
   }
-
   .backdrop-blur-sm {
     -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
-  }
+  } */
 }
 
 /* Custom animations */

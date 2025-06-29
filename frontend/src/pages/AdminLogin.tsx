@@ -45,7 +45,7 @@ const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50 dark:bg-gray-900 mt-16">
       {/* Left Side - Welcome Section */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
