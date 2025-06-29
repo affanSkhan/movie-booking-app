@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { moviesAPI, showsAPI, seatsAPI } from '../services/api';
-import { Clock, Calendar, MapPin, ArrowLeft, CreditCard, X } from 'lucide-react';
+import { Clock, Calendar, MapPin, ArrowLeft, CreditCard, X, Sparkles } from 'lucide-react';
 import SeatMap from '../components/SeatMap';
 import Toast from '../components/ui/Toast';
 import type { ToastType } from '../components/ui/Toast';
@@ -133,29 +133,47 @@ const BookShow: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading booking information...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center">
+        <motion.div 
+          className="text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-6"></div>
+            <motion.div
+              className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-primary/40 rounded-full animate-spin"
+              style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}
+            />
+          </div>
+          <p className="text-muted-foreground text-lg">Loading booking information...</p>
+        </motion.div>
       </div>
     );
   }
 
   if (error || !movie || !show) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Oops! Something went wrong</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">{error || 'Show not found'}</p>
-          <button
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center">
+        <motion.div 
+          className="text-center bg-card border border-border/50 rounded-2xl p-8 shadow-lg backdrop-blur-sm"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="text-destructive text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-foreground mb-2">Oops! Something went wrong</h2>
+          <p className="text-muted-foreground mb-6">{error || 'Show not found'}</p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/movies')}
-            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-xl font-medium transition-colors duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
           >
             Back to Movies
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
       </div>
     );
   }
@@ -163,30 +181,31 @@ const BookShow: React.FC = () => {
   const { time, date } = formatShowTime(show.show_time);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20">
+      {/* Enhanced Header */}
+      <header className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border-b border-border/50">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
-            {/* Back Button */}
+            {/* Enhanced Back Button */}
             <motion.button
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               onClick={() => navigate(`/showtimes/${movie.id}`)}
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+              className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-lg px-3 py-2"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Showtimes
             </motion.button>
 
-            {/* Show Info */}
+            {/* Enhanced Show Info */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-center"
             >
-              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">{movie.title}</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{time} • Screen {show.screen}</p>
+              <h1 className="text-lg font-semibold text-foreground">{movie.title}</h1>
+              <p className="text-sm text-muted-foreground">{time} • Screen {show.screen}</p>
             </motion.div>
 
             {/* Placeholder for balance */}
@@ -195,48 +214,51 @@ const BookShow: React.FC = () => {
         </div>
       </header>
 
-      {/* Movie Banner */}
-      <section className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Enhanced Movie Banner */}
+      <section className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col md:flex-row gap-6 items-center"
           >
-            {/* Movie Poster */}
+            {/* Enhanced Movie Poster */}
             <div className="flex-shrink-0">
-              <img
-                src={movie.poster_url || 'https://via.placeholder.com/80x120/1f2937/ffffff?text=No+Poster'}
-                alt={movie.title}
-                className="w-20 h-30 object-cover rounded-lg shadow-md dark:shadow-lg"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = 'https://via.placeholder.com/80x120/1f2937/ffffff?text=No+Poster';
-                }}
-              />
+              <div className="relative">
+                <img
+                  src={movie.poster_url || 'https://via.placeholder.com/80x120/1f2937/ffffff?text=No+Poster'}
+                  alt={movie.title}
+                  className="w-20 h-30 object-cover rounded-xl shadow-lg border border-primary-foreground/20"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://via.placeholder.com/80x120/1f2937/ffffff?text=No+Poster';
+                  }}
+                />
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-black/20 to-transparent"></div>
+              </div>
             </div>
 
-            {/* Movie Details */}
+            {/* Enhanced Movie Details */}
             <div className="flex-1 text-center md:text-left">
-              <h2 className="text-xl font-bold mb-2">{movie.title}</h2>
+              <h2 className="text-xl font-bold mb-3">{movie.title}</h2>
               
-              <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-blue-100 mb-2">
-                <div className="flex items-center gap-1">
+              <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-primary-foreground/80 mb-3">
+                <div className="flex items-center gap-2 bg-primary-foreground/10 px-3 py-1.5 rounded-full">
                   <Calendar className="w-4 h-4" />
                   {date}
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2 bg-primary-foreground/10 px-3 py-1.5 rounded-full">
                   <Clock className="w-4 h-4" />
                   {time}
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2 bg-primary-foreground/10 px-3 py-1.5 rounded-full">
                   <MapPin className="w-4 h-4" />
                   Screen {show.screen}
                 </div>
               </div>
 
               {movie.duration && (
-                <p className="text-sm text-blue-100">
+                <p className="text-sm text-primary-foreground/80">
                   Duration: {Math.floor(movie.duration / 60)}h {movie.duration % 60}m
                 </p>
               )}
@@ -245,19 +267,24 @@ const BookShow: React.FC = () => {
         </div>
       </section>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Enhanced Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Seat Map - Takes 2/3 of the space */}
+          {/* Enhanced Seat Map - Takes 2/3 of the space */}
           <div className="lg:col-span-2">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-xl p-6 border border-gray-200 dark:border-gray-700"
+              className="bg-card border border-border/50 rounded-2xl shadow-lg p-8 backdrop-blur-sm"
             >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Select Your Seats</h3>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-foreground">Select Your Seats</h3>
+                </div>
+                <div className="text-sm text-muted-foreground bg-muted/50 px-4 py-2 rounded-full">
                   {selectedSeats.length} seat{selectedSeats.length !== 1 ? 's' : ''} selected
                 </div>
               </div>
@@ -271,44 +298,44 @@ const BookShow: React.FC = () => {
                 onSeatDeselect={handleSeatDeselect}
               />
 
-              {/* Seat Legend */}
-              <div className="mt-6 flex flex-wrap gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gray-200 dark:bg-gray-600 rounded border border-gray-300 dark:border-gray-500"></div>
-                  <span className="text-gray-700 dark:text-gray-300">Available</span>
+              {/* Enhanced Seat Legend */}
+              <div className="mt-8 flex flex-wrap gap-6 text-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 bg-muted rounded border border-border"></div>
+                  <span className="text-foreground font-medium">Available</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-blue-500 rounded border"></div>
-                  <span className="text-gray-700 dark:text-gray-300">Selected</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 bg-primary rounded border"></div>
+                  <span className="text-foreground font-medium">Selected</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-red-500 rounded border"></div>
-                  <span className="text-gray-700 dark:text-gray-300">Booked</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 bg-destructive rounded border"></div>
+                  <span className="text-foreground font-medium">Booked</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-yellow-500 rounded border"></div>
-                  <span className="text-gray-700 dark:text-gray-300">Locked</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 bg-yellow-500 rounded border"></div>
+                  <span className="text-foreground font-medium">Locked</span>
                 </div>
               </div>
             </motion.div>
           </div>
 
-          {/* Booking Summary - Takes 1/3 of the space */}
+          {/* Enhanced Booking Summary - Takes 1/3 of the space */}
           <div className="lg:col-span-1">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-xl p-6 sticky top-8 border border-gray-200 dark:border-gray-700"
+              className="bg-card border border-border/50 rounded-2xl shadow-lg p-8 sticky top-8 backdrop-blur-sm"
             >
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Booking Summary</h3>
+              <h3 className="text-2xl font-semibold text-foreground mb-8">Booking Summary</h3>
 
-              {/* Selected Seats */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-900 dark:text-white mb-3">Selected Seats</h4>
+              {/* Enhanced Selected Seats */}
+              <div className="mb-8">
+                <h4 className="font-medium text-foreground mb-4">Selected Seats</h4>
                 {selectedSeats.length === 0 ? (
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">No seats selected</p>
+                  <p className="text-muted-foreground text-sm bg-muted/30 rounded-xl p-4 text-center">No seats selected</p>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <AnimatePresence>
                       {selectedSeats.map((seatNumber) => (
                         <motion.div
@@ -316,16 +343,18 @@ const BookShow: React.FC = () => {
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: 10 }}
-                          className="flex items-center justify-between bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-700"
+                          className="flex items-center justify-between bg-primary/10 rounded-xl p-4 border border-primary/20"
                         >
-                          <span className="font-medium text-blue-900 dark:text-blue-100">Seat {seatNumber}</span>
-                          <button
+                          <span className="font-medium text-primary">Seat {seatNumber}</span>
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
                             onClick={() => handleSeatDeselect(seatNumber)}
                             title={`Remove seat ${seatNumber}`}
-                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                            className="text-primary hover:text-primary/80 transition-colors focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card rounded-lg p-1"
                           >
                             <X className="w-4 h-4" />
-                          </button>
+                          </motion.button>
                         </motion.div>
                       ))}
                     </AnimatePresence>
@@ -333,44 +362,44 @@ const BookShow: React.FC = () => {
                 )}
               </div>
 
-              {/* Price Breakdown */}
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mb-6">
-                <div className="space-y-2">
+              {/* Enhanced Price Breakdown */}
+              <div className="border-t border-border/50 pt-6 mb-8">
+                <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-700 dark:text-gray-300">Price per seat:</span>
-                    <span className="text-gray-900 dark:text-white">₹{seatPrice}</span>
+                    <span className="text-muted-foreground">Price per seat:</span>
+                    <span className="text-foreground font-medium">₹{seatPrice}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-700 dark:text-gray-300">Number of seats:</span>
-                    <span className="text-gray-900 dark:text-white">{selectedSeats.length}</span>
+                    <span className="text-muted-foreground">Number of seats:</span>
+                    <span className="text-foreground font-medium">{selectedSeats.length}</span>
                   </div>
-                  <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
-                    <div className="flex justify-between font-semibold text-lg">
-                      <span className="text-gray-900 dark:text-white">Total:</span>
-                      <span className="text-gray-900 dark:text-white">₹{totalPrice}</span>
+                  <div className="border-t border-border/50 pt-3">
+                    <div className="flex justify-between font-semibold text-xl">
+                      <span className="text-foreground">Total:</span>
+                      <span className="text-primary">₹{totalPrice}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Proceed to Payment Button */}
+              {/* Enhanced Proceed to Payment Button */}
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 disabled={selectedSeats.length === 0}
                 onClick={handleProceedToPayment}
-                className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+                className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-3 focus:ring-2 focus:ring-offset-2 focus:ring-offset-card ${
                   selectedSeats.length === 0
-                    ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white shadow-lg hover:shadow-xl'
+                    ? 'bg-muted text-muted-foreground cursor-not-allowed focus:ring-muted'
+                    : 'bg-primary hover:bg-primary/90 text-primary-foreground focus:ring-primary shadow-lg hover:shadow-xl'
                 }`}
               >
                 <CreditCard className="w-5 h-5" />
                 Proceed to Pay ₹{totalPrice}
               </motion.button>
 
-              {/* Additional Info */}
-              <div className="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center">
+              {/* Enhanced Additional Info */}
+              <div className="mt-6 text-xs text-muted-foreground text-center space-y-1">
                 <p>• Seats are held for 10 minutes</p>
                 <p>• Payment required to confirm booking</p>
               </div>

@@ -9,6 +9,7 @@ import { useAuth } from '../contexts/AuthContextInstance';
 import Toast from '../components/ui/Toast';
 import type { ToastType } from '../components/ui/Toast';
 import { AxiosError } from 'axios';
+import { Crown, Film, BarChart3, Settings } from 'lucide-react';
 
 const AdminLogin: React.FC = () => {
   const { adminLogin } = useAuth();
@@ -60,7 +61,9 @@ const AdminLogin: React.FC = () => {
           transition={{ delay: 0.3, duration: 0.8 }}
           className="relative z-10"
         >
-          <div className="text-5xl lg:text-6xl mb-4 lg:mb-6">👑</div>
+          <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white/20 rounded-2xl flex items-center justify-center mb-4 lg:mb-6">
+            <Crown className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
+          </div>
           <h1 className="text-3xl lg:text-4xl font-bold mb-3 lg:mb-4">Admin Dashboard</h1>
           <p className="text-lg lg:text-xl mb-6 lg:mb-8 text-purple-100">
             Access your movie booking system administration panel
@@ -68,19 +71,19 @@ const AdminLogin: React.FC = () => {
           <div className="space-y-3 lg:space-y-4">
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-xs lg:text-sm">🎬</span>
+                <Film className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
               </div>
               <span className="text-sm lg:text-base text-purple-100">Manage movies and shows</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-xs lg:text-sm">📊</span>
+                <BarChart3 className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
               </div>
               <span className="text-sm lg:text-base text-purple-100">View booking analytics</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-xs lg:text-sm">⚙️</span>
+                <Settings className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
               </div>
               <span className="text-sm lg:text-base text-purple-100">System configuration</span>
             </div>
@@ -97,7 +100,9 @@ const AdminLogin: React.FC = () => {
       >
         <div className="w-full max-w-sm sm:max-w-md">
           <div className="lg:hidden text-center mb-6 sm:mb-8">
-            <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">👑</div>
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <Crown className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+            </div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">Admin Dashboard</h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Access your administration panel</p>
           </div>

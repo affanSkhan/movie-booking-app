@@ -9,6 +9,7 @@ import { useAuth } from '../contexts/AuthContextInstance';
 import Toast from '../components/ui/Toast';
 import type { ToastType } from '../components/ui/Toast';
 import { AxiosError } from 'axios';
+import { UserPlus, Film, Gem } from 'lucide-react';
 
 const Register: React.FC = () => {
   const { register: registerUser } = useAuth();
@@ -62,7 +63,9 @@ const Register: React.FC = () => {
           transition={{ delay: 0.3, duration: 0.8 }}
           className="relative z-10"
         >
-          <div className="text-5xl lg:text-6xl mb-4 lg:mb-6">🎭</div>
+          <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white/20 rounded-2xl flex items-center justify-center mb-4 lg:mb-6">
+            <UserPlus className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
+          </div>
           <h1 className="text-3xl lg:text-4xl font-bold mb-3 lg:mb-4">Join the Movie Experience!</h1>
           <p className="text-lg lg:text-xl mb-6 lg:mb-8 text-green-100">
             Create your account and start booking your favorite movies today
@@ -71,19 +74,21 @@ const Register: React.FC = () => {
           <div className="space-y-3 lg:space-y-4">
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-xs lg:text-sm">🎬</span>
+                <Film className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
               </div>
               <span className="text-sm lg:text-base text-green-100">Browse latest movies</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-xs lg:text-sm">🎫</span>
+                <svg className="w-3 h-3 lg:w-4 lg:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                </svg>
               </div>
               <span className="text-sm lg:text-base text-green-100">Book seats instantly</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-xs lg:text-sm">💎</span>
+                <Gem className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
               </div>
               <span className="text-sm lg:text-base text-green-100">Exclusive member benefits</span>
             </div>
@@ -101,7 +106,9 @@ const Register: React.FC = () => {
         <div className="w-full max-w-sm sm:max-w-md">
           {/* Mobile Header */}
           <div className="lg:hidden text-center mb-6 sm:mb-8">
-            <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">🎭</div>
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-600 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <UserPlus className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+            </div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">Join the Movie Experience!</h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Create your account today</p>
           </div>

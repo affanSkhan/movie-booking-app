@@ -1,58 +1,93 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import { Clock, Star, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-interface Movie {
-  id: number;
-  title: string;
-  description: string;
-  poster_url?: string;
-  duration?: number;
-  created_at: string;
-}
-
 interface MovieCardProps {
-  movie: Movie;
+  movie: {
+    id: number;
+    title: string;
+    description: string;
+    poster_url?: string;
+    duration?: number;
+  };
 }
 
 const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
-  const defaultPoster = 'https://via.placeholder.com/300x450/1f2937/ffffff?text=No+Poster';
-
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-xl overflow-hidden hover:shadow-lg dark:hover:shadow-2xl transition-shadow duration-300 border border-gray-200 dark:border-gray-700">
-      <div className="relative">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -8 }}
+      transition={{ duration: 0.3 }}
+      className="group relative overflow-hidden card-hover"
+    >
+      {/* Movie Poster */}
+      <div className="relative aspect-[2/3] overflow-hidden rounded-t-xl">
         <img
-          src={movie.poster_url || defaultPoster}
+          src={movie.poster_url || 'https://via.placeholder.com/300x450?text=Movie'}
           alt={movie.title}
-          className="w-full h-64 object-cover"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = defaultPoster;
-          }}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
+        
+        {/* Overlay with gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
+        {/* Play button overlay */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="w-16 h-16 gradient-primary rounded-full flex items-center justify-center shadow-2xl animate-bounce-in">
+            <Play className="w-8 h-8 text-white ml-1" fill="white" />
+          </div>
+        </div>
+
+        {/* Duration badge */}
         {movie.duration && (
-          <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-sm">
-            {Math.floor(movie.duration / 60)}h {movie.duration % 60}m
+          <div className="absolute top-3 right-3 glass px-2 py-1 rounded-full flex items-center space-x-1">
+            <Clock className="w-3 h-3 text-white" />
+            <span className="text-xs text-white font-medium">
+              {Math.floor(movie.duration / 60)}h {movie.duration % 60}m
+            </span>
           </div>
         )}
+
+        {/* Rating badge */}
+        <div className="absolute top-3 left-3 glass px-2 py-1 rounded-full flex items-center space-x-1">
+          <Star className="w-3 h-3 text-yellow-400" fill="currentColor" />
+          <span className="text-xs text-white font-medium">
+            {(Math.random() * 2 + 3).toFixed(1)}
+          </span>
+        </div>
       </div>
-      
+
+      {/* Movie Info */}
       <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
           {movie.title}
         </h3>
-        
-        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
-          {movie.description || 'No description available.'}
+        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4">
+          {movie.description}
         </p>
         
-        <Link
-          to={`/movie/${movie.id}`}
-          className="inline-block bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium py-2 px-4 rounded transition-colors duration-200"
-        >
-          View Details
-        </Link>
+        {/* Action Buttons */}
+        <div className="flex space-x-2">
+          <Link
+            to={`/movie/${movie.id}`}
+            className="flex-1 btn-primary text-center text-sm py-2"
+          >
+            View Details
+          </Link>
+          <Link
+            to={`/showtimes?movie=${movie.id}`}
+            className="flex-1 btn-secondary text-center text-sm py-2"
+          >
+            Book Now
+          </Link>
+        </div>
       </div>
-    </div>
+
+      {/* Hover effect border */}
+      <div className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-blue-500/50 transition-colors duration-300 pointer-events-none" />
+    </motion.div>
   );
 };
 

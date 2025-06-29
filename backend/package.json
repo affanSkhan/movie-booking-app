@@ -7,6 +7,7 @@
     "dev": "bun run --watch index.ts",
     "start": "bun run index.ts",
     "build": "tsc",
+    "postinstall": "bun run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -36,5 +37,9 @@
     "postgresql"
   ],
   "author": "Your Name",
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  }
 }

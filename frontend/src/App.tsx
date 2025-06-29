@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { useAuth } from './contexts/AuthContextInstance';
@@ -89,86 +89,91 @@ const DebugInfo: React.FC = () => {
   );
 };
 
-// App Routes Component (uses AuthContext)
+// App Routes Component (uses AuthContext) - Now inside Router context
 const AppRoutes: React.FC = () => {
+  const location = useLocation();
+  const { user } = useAuth();
+  // Hide main navbar ONLY when on /admin and user is admin
+  const isAdminPanel = location.pathname === '/admin' && user?.role === 'admin';
+  const showMainNavbar = !isAdminPanel;
+
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Navbar />
-        <main>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/movies" element={<Movies />} />
-            <Route path="/showtimes/:movieId" element={<Showtimes />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password/:token" element={<ResetPassword />} />
-            <Route path="/movie/:id" element={<MovieDetails />} />
-            
-            {/* Protected Routes */}
-            <Route 
-              path="/booking/:showId" 
-              element={
-                <ProtectedRoute requireAuth>
-                  <ShowBooking />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/book/:showId" 
-              element={
-                <ProtectedRoute requireAuth>
-                  <BookShow />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/my-bookings" 
-              element={
-                <ProtectedRoute requireAuth>
-                  <MyBookings />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/payment" 
-              element={
-                <ProtectedRoute requireAuth>
-                  <Payment />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/booking-success" 
-              element={
-                <ProtectedRoute requireAuth>
-                  <BookingSuccess />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Admin Routes */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route 
-              path="/admin" 
-              element={
-                <ProtectedRoute requireAuth requireAdmin>
-                  <AdminPanel />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Debug Route */}
-            <Route path="/debug" element={<DebugInfo />} />
-            
-            {/* Catch all route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {showMainNavbar && <Navbar />}
+      <main>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/movies" element={<Movies />} />
+          <Route path="/showtimes" element={<Showtimes />} />
+          <Route path="/showtimes/:movieId" element={<Showtimes />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/movie/:id" element={<MovieDetails />} />
+          
+          {/* Protected Routes */}
+          <Route 
+            path="/booking/:showId" 
+            element={
+              <ProtectedRoute requireAuth>
+                <ShowBooking />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/book/:showId" 
+            element={
+              <ProtectedRoute requireAuth>
+                <BookShow />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/my-bookings" 
+            element={
+              <ProtectedRoute requireAuth>
+                <MyBookings />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/payment" 
+            element={
+              <ProtectedRoute requireAuth>
+                <Payment />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/booking-success" 
+            element={
+              <ProtectedRoute requireAuth>
+                <BookingSuccess />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Admin Routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute requireAuth requireAdmin>
+                <AdminPanel />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Debug Route */}
+          <Route path="/debug" element={<DebugInfo />} />
+          
+          {/* Catch all route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+    </div>
   );
 };
 
@@ -176,7 +181,9 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <SocketProvider>
-        <AppRoutes />
+        <Router>
+          <AppRoutes />
+        </Router>
       </SocketProvider>
     </AuthProvider>
   );

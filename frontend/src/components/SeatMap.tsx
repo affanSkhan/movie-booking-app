@@ -299,7 +299,7 @@ const SeatMap: React.FC<SeatMapProps> = ({
       {/* Screen */}
       <div className="text-center">
         <div className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg inline-block border border-gray-400 dark:border-gray-500">
-          🎬 SCREEN
+           SCREEN
         </div>
       </div>
 
@@ -347,19 +347,19 @@ const SeatMap: React.FC<SeatMapProps> = ({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-green-500 rounded"></div>
-            <span className="text-gray-700 dark:text-gray-300">🟢 Available</span>
+            <span className="text-gray-700 dark:text-gray-300"> Available</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-orange-500 rounded"></div>
-            <span className="text-gray-700 dark:text-gray-300">🟠 Selected by You</span>
+            <span className="text-gray-700 dark:text-gray-300"> Selected by You</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-red-500 rounded"></div>
-            <span className="text-gray-700 dark:text-gray-300">🔴 Locked by Others</span>
+            <span className="text-gray-700 dark:text-gray-300"> Locked by Others</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-gray-800 dark:bg-gray-900 rounded"></div>
-            <span className="text-gray-700 dark:text-gray-300">⚫ Booked</span>
+            <span className="text-gray-700 dark:text-gray-300"> Booked</span>
           </div>
         </div>
       </div>
@@ -368,7 +368,7 @@ const SeatMap: React.FC<SeatMapProps> = ({
       <div className="text-center text-sm text-gray-600 dark:text-gray-400">
         <div className="flex items-center justify-center space-x-2">
           <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
-          <span>{isConnected ? '🟢 Connected - Real-time updates active' : '🔴 Disconnected - No real-time updates'}</span>
+          <span>{isConnected ? ' Connected - Real-time updates active' : ' Disconnected - No real-time updates'}</span>
         </div>
       </div>
     </div>

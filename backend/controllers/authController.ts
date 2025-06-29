@@ -82,6 +82,11 @@ export const login = asyncHandler(
       throw createError("Invalid credentials", 401);
     }
 
+    // Only allow non-admin users to login through regular login
+    if (user.role === "admin") {
+      throw createError("Please use admin login for admin accounts", 403);
+    }
+
     // Generate JWT token
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },

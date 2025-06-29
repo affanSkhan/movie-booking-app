@@ -40,6 +40,23 @@ app.get("/", (req, res) => {
   res.json({ message: "Movie Booking API is running!" });
 });
 
+// Health check endpoint for deployment platforms
+app.get("/health", (req, res) => {
+  res.json({ 
+    status: "healthy", 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+app.get("/api/health", (req, res) => {
+  res.json({ 
+    status: "healthy", 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // Socket.IO connection handling
 io.on("connection", (socket) => {
   console.log("🔌 User connected:", socket.id);

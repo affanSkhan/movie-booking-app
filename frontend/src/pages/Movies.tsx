@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { moviesAPI } from '../services/api';
-import { showsAPI } from '../services/api';
-import { Clock, Star, Search, Filter, Calendar } from 'lucide-react';
+import { moviesAPI, showsAPI } from '../services/api';
+import { Clock, Star, Search, Filter, Calendar, Sparkles, Zap, Film } from 'lucide-react';
 
 interface Movie {
   id: number;
@@ -92,118 +91,161 @@ const Movies: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading movies...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center">
+        <motion.div 
+          className="text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-6"></div>
+            <motion.div
+              className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-primary/40 rounded-full animate-spin"
+              style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}
+            />
+          </div>
+          <p className="text-muted-foreground text-lg">Loading movies...</p>
+        </motion.div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">Oops! Something went wrong</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
-          <button
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center">
+        <motion.div 
+          className="text-center bg-card border border-border/50 rounded-2xl p-8 shadow-lg backdrop-blur-sm"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="text-destructive text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-foreground mb-2">Oops! Something went wrong</h2>
+          <p className="text-muted-foreground mb-6">{error}</p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => window.location.reload()}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-xl font-medium transition-colors duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
           >
             Try Again
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20">
+      {/* Enhanced Header */}
+      <header className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border-b border-border/50">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="inline-block mb-6"
+            >
+              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
+                <Sparkles className="w-8 h-8 text-primary" />
+              </div>
+            </motion.div>
+            
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">
               Now Showing
             </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              Discover and book your favorite movies
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Discover and book your favorite movies with our curated collection
             </p>
           </motion.div>
         </div>
       </header>
 
-      {/* Search and Filters */}
-      <section className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search movies by title or description..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+      {/* Enhanced Search and Filters */}
+      <section className="relative -mt-6 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            className="backdrop-blur-xl bg-card/80 dark:bg-card/90 border border-border/50 rounded-2xl shadow-soft-dark p-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Enhanced Search */}
+              <div className="flex-1 relative group">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-200 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search movies by title or description..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-background/50 dark:bg-background/30 border border-border/50 rounded-xl text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                />
+              </div>
 
-            {/* Date Filter */}
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                min={today}
-                className="pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+              {/* Enhanced Date Filter */}
+              <div className="relative group">
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-200 w-5 h-5" />
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  min={today}
+                  className="pl-10 pr-4 py-3 bg-background/50 dark:bg-background/30 border border-border/50 rounded-xl text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 backdrop-blur-sm cursor-pointer"
+                  aria-label="Filter by date"
+                />
+              </div>
 
-            {/* Sort */}
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'title' | 'duration' | 'newest')}
-                className="pl-10 pr-8 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
-              >
-                <option value="newest">Newest First</option>
-                <option value="title">Title A-Z</option>
-                <option value="duration">Duration</option>
-              </select>
+              {/* Enhanced Sort */}
+              <div className="relative group">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-200 w-5 h-5" />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'title' | 'duration' | 'newest')}
+                  className="pl-10 pr-8 py-3 bg-background/50 dark:bg-background/30 border border-border/50 rounded-xl text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 backdrop-blur-sm appearance-none cursor-pointer"
+                  aria-label="Sort movies by"
+                >
+                  <option value="newest">Newest First</option>
+                  <option value="title">Title A-Z</option>
+                  <option value="duration">Duration</option>
+                </select>
+              </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* Movies Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Enhanced Movies Grid */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {filteredMovies.length === 0 ? (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center py-16"
           >
-            <div className="text-gray-400 text-6xl mb-4">🎬</div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No movies found</h3>
-            <p className="text-gray-600 dark:text-gray-400">Try adjusting your search or filters</p>
+            <div className="bg-card border border-border/50 rounded-2xl p-12 backdrop-blur-sm">
+              <div className="w-16 h-16 bg-muted/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Film className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-2xl font-semibold text-foreground mb-3">No movies found</h3>
+              <p className="text-muted-foreground text-lg">Try adjusting your search or filters</p>
+            </div>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             <AnimatePresence>
               {filteredMovies.map((movie, index) => (
                 <motion.div
                   key={movie.id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -211,76 +253,82 @@ const Movies: React.FC = () => {
                     y: -8,
                     transition: { duration: 0.2 }
                   }}
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden group cursor-pointer"
+                  className="group cursor-pointer"
                   onClick={() => navigate(`/showtimes/${movie.id}`)}
                 >
-                  {/* Poster */}
-                  <div className="relative overflow-hidden">
-                    <img
-                      src={movie.poster_url || 'https://via.placeholder.com/300x450/1f2937/ffffff?text=No+Poster'}
-                      alt={movie.title}
-                      className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = 'https://via.placeholder.com/300x450/1f2937/ffffff?text=No+Poster';
-                      }}
-                    />
-                    
-                    {/* Overlay with show count */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-3">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {getShowsCount(movie.id)} showtimes available
-                          </p>
+                  <div className="relative bg-card border border-border/50 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
+                    {/* Enhanced Poster */}
+                    <div className="relative overflow-hidden rounded-t-2xl">
+                      <img
+                        src={movie.poster_url || 'https://via.placeholder.com/300x450/1f2937/ffffff?text=No+Poster'}
+                        alt={movie.title}
+                        className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-500"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://via.placeholder.com/300x450/1f2937/ffffff?text=No+Poster';
+                        }}
+                      />
+                      
+                      {/* Enhanced overlay with show count */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <div className="backdrop-blur-md bg-white/20 dark:bg-black/40 border border-white/30 dark:border-white/10 rounded-xl p-4">
+                            <p className="text-sm font-medium text-white flex items-center gap-2">
+                              <Zap className="w-4 h-4" />
+                              {getShowsCount(movie.id)} showtimes available
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Duration badge */}
-                    {movie.duration && (
-                      <div className="absolute top-3 right-3 bg-black/75 text-white px-2 py-1 rounded-md text-sm font-medium flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {formatDuration(movie.duration)}
+                      {/* Enhanced Duration badge */}
+                      {movie.duration && (
+                        <div className="absolute top-3 right-3 backdrop-blur-md bg-white/20 dark:bg-black/40 border border-white/30 dark:border-white/10 px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-white" />
+                          <span className="text-white">{formatDuration(movie.duration)}</span>
+                        </div>
+                      )}
+
+                      {/* Enhanced Rating badge */}
+                      <div className="absolute top-3 left-3 backdrop-blur-md bg-white/20 dark:bg-black/40 border border-white/30 dark:border-white/10 px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-1">
+                        <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                        <span className="text-white">4.5</span>
                       </div>
-                    )}
-
-                    {/* Rating badge (placeholder) */}
-                    <div className="absolute top-3 left-3 bg-yellow-500 text-white px-2 py-1 rounded-md text-sm font-medium flex items-center gap-1">
-                      <Star className="w-3 h-3 fill-current" />
-                      4.5
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-4">
-                    <h3 className="text-lg font-bold mb-2 text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {movie.title}
-                    </h3>
-                    
-                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
-                      {movie.description || 'No description available.'}
-                    </p>
-
-                    {/* Movie details */}
-                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-4">
-                      <span>Action • Drama</span>
-                      <span>English</span>
                     </div>
 
-                    {/* CTA Button */}
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/showtimes/${movie.id}`);
-                      }}
-                    >
-                      <Calendar className="w-4 h-4" />
-                      Book Now
-                    </motion.button>
+                    {/* Enhanced Content */}
+                    <div className="p-6">
+                      <h3 className="text-lg font-bold mb-3 text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
+                        {movie.title}
+                      </h3>
+                      
+                      <p className="text-muted-foreground text-sm mb-4 line-clamp-2 leading-relaxed">
+                        {movie.description || 'No description available.'}
+                      </p>
+
+                      {/* Enhanced Movie details */}
+                      <div className="flex items-center justify-between text-xs text-muted-foreground mb-6">
+                        <span className="bg-primary/10 text-primary px-3 py-1.5 rounded-full font-medium">Action • Drama</span>
+                        <span className="bg-muted text-muted-foreground px-3 py-1.5 rounded-full font-medium">English</span>
+                      </div>
+
+                      {/* Enhanced CTA Button */}
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-4 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/showtimes/${movie.id}`);
+                        }}
+                      >
+                        <Calendar className="w-4 h-4" />
+                        Book Now
+                      </motion.button>
+                    </div>
+
+                    {/* Enhanced hover effect border */}
+                    <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-primary/30 transition-colors duration-300 pointer-events-none" />
                   </div>
                 </motion.div>
               ))}
@@ -289,11 +337,16 @@ const Movies: React.FC = () => {
         )}
       </section>
 
-      {/* Results count */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-        <p className="text-gray-600 dark:text-gray-400 text-sm">
+      {/* Enhanced Results count */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <motion.p 
+          className="text-muted-foreground text-sm bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl px-4 py-3 inline-block"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+        >
           Showing {filteredMovies.length} of {movies.length} movies
-        </p>
+        </motion.p>
       </div>
     </div>
   );

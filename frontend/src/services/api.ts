@@ -49,6 +49,7 @@ export const moviesAPI = {
 
 // Shows API
 export const showsAPI = {
+  getAll: () => api.get('/shows/movie/all'),
   getByMovie: (movieId: string) => api.get(`/shows/movie/${movieId}`),
   getById: (id: string) => api.get(`/shows/${id}`),
   create: (data: { movie_id: number; show_time: string; screen: string }) =>

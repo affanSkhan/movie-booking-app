@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Clock, MapPin, Calendar } from 'lucide-react';
+import { ArrowLeft, Clock, MapPin, Calendar, Shield, CreditCard } from 'lucide-react';
 import PaymentForm from '../components/PaymentForm';
 import Toast from '../components/ui/Toast';
 import type { ToastType } from '../components/ui/Toast';
@@ -93,11 +93,22 @@ const Payment: React.FC = () => {
 
   if (!paymentData) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading payment details...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center">
+        <motion.div 
+          className="text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-6"></div>
+            <motion.div
+              className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-primary/40 rounded-full animate-spin"
+              style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}
+            />
+          </div>
+          <p className="text-muted-foreground text-lg">Loading payment details...</p>
+        </motion.div>
       </div>
     );
   }
@@ -105,30 +116,36 @@ const Payment: React.FC = () => {
   const { time, date } = formatShowTime(paymentData.show.show_time);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20">
+      {/* Enhanced Header */}
+      <header className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border-b border-border/50">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
-            {/* Back Button */}
+            {/* Enhanced Back Button */}
             <motion.button
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               onClick={() => navigate(`/book/${paymentData.showId}`)}
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+              className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-lg px-3 py-2"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Booking
             </motion.button>
 
-            {/* Page Title */}
+            {/* Enhanced Page Title */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-center"
             >
-              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Complete Payment</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Secure payment powered by Razorpay</p>
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <CreditCard className="w-4 h-4 text-primary" />
+                </div>
+                <h1 className="text-xl font-semibold text-foreground">Complete Payment</h1>
+              </div>
+              <p className="text-sm text-muted-foreground">Secure payment powered by Razorpay</p>
             </motion.div>
 
             {/* Placeholder for balance */}
@@ -137,53 +154,56 @@ const Payment: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Enhanced Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Booking Summary - Takes 2/3 of the space */}
+          {/* Enhanced Booking Summary - Takes 2/3 of the space */}
           <div className="lg:col-span-2">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700"
+              className="bg-card border border-border/50 rounded-2xl shadow-lg overflow-hidden backdrop-blur-sm"
             >
-              {/* Movie Banner */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
+              {/* Enhanced Movie Banner */}
+              <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-8">
                 <div className="flex flex-col md:flex-row gap-6 items-center">
-                  {/* Movie Poster */}
+                  {/* Enhanced Movie Poster */}
                   <div className="flex-shrink-0">
-                    <img
-                      src={paymentData.movie.poster_url || 'https://via.placeholder.com/80x120/1f2937/ffffff?text=No+Poster'}
-                      alt={paymentData.movie.title}
-                      className="w-20 h-30 object-cover rounded-lg shadow-md dark:shadow-lg"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = 'https://via.placeholder.com/80x120/1f2937/ffffff?text=No+Poster';
-                      }}
-                    />
+                    <div className="relative">
+                      <img
+                        src={paymentData.movie.poster_url || 'https://via.placeholder.com/80x120/1f2937/ffffff?text=No+Poster'}
+                        alt={paymentData.movie.title}
+                        className="w-20 h-30 object-cover rounded-xl shadow-lg border border-primary-foreground/20"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://via.placeholder.com/80x120/1f2937/ffffff?text=No+Poster';
+                        }}
+                      />
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-black/20 to-transparent"></div>
+                    </div>
                   </div>
 
-                  {/* Movie Details */}
+                  {/* Enhanced Movie Details */}
                   <div className="flex-1 text-center md:text-left">
-                    <h2 className="text-xl font-bold mb-2">{paymentData.movie.title}</h2>
+                    <h2 className="text-2xl font-bold mb-3">{paymentData.movie.title}</h2>
                     
-                    <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-blue-100 mb-2">
-                      <div className="flex items-center gap-1">
+                    <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-primary-foreground/80 mb-3">
+                      <div className="flex items-center gap-2 bg-primary-foreground/10 px-3 py-1.5 rounded-full">
                         <Calendar className="w-4 h-4" />
                         {date}
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-2 bg-primary-foreground/10 px-3 py-1.5 rounded-full">
                         <Clock className="w-4 h-4" />
                         {time}
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-2 bg-primary-foreground/10 px-3 py-1.5 rounded-full">
                         <MapPin className="w-4 h-4" />
                         Screen {paymentData.show.screen}
                       </div>
                     </div>
 
                     {paymentData.movie.duration && (
-                      <p className="text-sm text-blue-100">
+                      <p className="text-sm text-primary-foreground/80">
                         Duration: {Math.floor(paymentData.movie.duration / 60)}h {paymentData.movie.duration % 60}m
                       </p>
                     )}
@@ -191,19 +211,19 @@ const Payment: React.FC = () => {
                 </div>
               </div>
 
-              {/* Booking Details */}
-              <div className="p-6">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Booking Summary</h3>
+              {/* Enhanced Booking Details */}
+              <div className="p-8">
+                <h3 className="text-2xl font-semibold text-foreground mb-8">Booking Summary</h3>
                 
-                <div className="space-y-4">
-                  {/* Selected Seats */}
-                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Selected Seats</h4>
-                    <div className="flex flex-wrap gap-2">
+                <div className="space-y-6">
+                  {/* Enhanced Selected Seats */}
+                  <div className="bg-background/50 dark:bg-background/30 rounded-xl p-6 border border-border/50 backdrop-blur-sm">
+                    <h4 className="font-medium text-foreground mb-4">Selected Seats</h4>
+                    <div className="flex flex-wrap gap-3">
                       {paymentData.selectedSeats.map((seat) => (
                         <span
                           key={seat}
-                          className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm font-medium border border-blue-200 dark:border-blue-700"
+                          className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium border border-primary/20"
                         >
                           Seat {seat}
                         </span>
@@ -211,35 +231,52 @@ const Payment: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Price Breakdown */}
-                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Price Breakdown</h4>
-                    <div className="space-y-2">
+                  {/* Enhanced Price Breakdown */}
+                  <div className="bg-background/50 dark:bg-background/30 rounded-xl p-6 border border-border/50 backdrop-blur-sm">
+                    <h4 className="font-medium text-foreground mb-4">Price Breakdown</h4>
+                    <div className="space-y-3">
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-700 dark:text-gray-300">Price per seat:</span>
-                        <span className="text-gray-900 dark:text-white">₹{paymentData.seatPrice}</span>
+                        <span className="text-muted-foreground">Price per seat:</span>
+                        <span className="text-foreground font-medium">₹{paymentData.seatPrice}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-700 dark:text-gray-300">Number of seats:</span>
-                        <span className="text-gray-900 dark:text-white">{paymentData.selectedSeats.length}</span>
+                        <span className="text-muted-foreground">Number of seats:</span>
+                        <span className="text-foreground font-medium">{paymentData.selectedSeats.length}</span>
                       </div>
-                      <div className="border-t border-gray-200 dark:border-gray-600 pt-2">
-                        <div className="flex justify-between font-semibold text-lg">
-                          <span className="text-gray-900 dark:text-white">Total Amount:</span>
-                          <span className="text-gray-900 dark:text-white">₹{paymentData.totalPrice}</span>
+                      <div className="border-t border-border/50 pt-3">
+                        <div className="flex justify-between font-semibold text-xl">
+                          <span className="text-foreground">Total Amount:</span>
+                          <span className="text-primary">₹{paymentData.totalPrice}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Important Notes */}
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
-                    <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">Important Information</h4>
-                    <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
-                      <li>• Seats are held for 10 minutes during payment</li>
-                      <li>• Payment is processed securely via Razorpay</li>
-                      <li>• You'll receive a confirmation email after successful payment</li>
-                      <li>• Tickets are non-refundable once confirmed</li>
+                  {/* Enhanced Important Notes */}
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-xl p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 bg-yellow-100 dark:bg-yellow-800 rounded-lg flex items-center justify-center">
+                        <Shield className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                      </div>
+                      <h4 className="font-medium text-yellow-800 dark:text-yellow-200">Important Information</h4>
+                    </div>
+                    <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-2">
+                      <li className="flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></span>
+                        Seats are held for 10 minutes during payment
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></span>
+                        Payment is processed securely via Razorpay
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></span>
+                        You'll receive a confirmation email after successful payment
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></span>
+                        Tickets are non-refundable once confirmed
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -247,7 +284,7 @@ const Payment: React.FC = () => {
             </motion.div>
           </div>
 
-          {/* Payment Form - Takes 1/3 of the space */}
+          {/* Enhanced Payment Form - Takes 1/3 of the space */}
           <div className="lg:col-span-1">
             <motion.div
               initial={{ opacity: 0, x: 20 }}

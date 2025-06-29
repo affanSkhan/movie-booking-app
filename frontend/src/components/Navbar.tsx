@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Moon, Sun, Menu, X } from 'lucide-react';
+import { Moon, Sun, Menu, X, LogOut, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContextInstance';
 import { useDarkMode } from '../hooks/useDarkMode';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const { darkMode, setDarkMode } = useDarkMode();
-  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
+    setIsUserMenuOpen(false);
     navigate('/');
-    setIsMobileMenuOpen(false);
   };
 
   const toggleDarkMode = () => {
@@ -24,88 +25,140 @@ const Navbar: React.FC = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  const closeMobileMenu = () => {
+  const toggleUserMenu = () => {
+    setIsUserMenuOpen(!isUserMenuOpen);
+  };
+
+  const closeMenus = () => {
     setIsMobileMenuOpen(false);
+    setIsUserMenuOpen(false);
   };
 
   return (
-    <nav className="bg-gray-800 dark:bg-gray-900 text-white shadow-lg" aria-label="Main navigation">
+    <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/20 dark:border-gray-800/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center" onClick={closeMobileMenu}>
-              <span className="text-lg sm:text-xl font-bold">🎬 Movie Booking</span>
-            </Link>
-          </div>
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link 
+            to="/" 
+            className="flex items-center space-x-3 group"
+            onClick={closeMenus}
+          >
+            <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+              <span className="text-white font-bold text-xl">M</span>
+            </div>
+            <span className="text-xl font-bold text-gradient group-hover:scale-105 transition-transform duration-300">
+              MovieBook
+            </span>
+          </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Link
-              to="/movies"
-              className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            <Link 
+              to="/" 
+              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
+            >
+              Home
+            </Link>
+            <Link 
+              to="/movies" 
+              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
             >
               Movies
             </Link>
+            <Link 
+              to="/showtimes" 
+              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
+            >
+              Showtimes
+            </Link>
+            {user && (
+              <Link 
+                to="/my-bookings" 
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
+              >
+                My Bookings
+              </Link>
+            )}
+            {user?.role === 'admin' && (
+              <Link 
+                to="/admin" 
+                className="flex items-center space-x-2 text-primary hover:text-primary/80 font-medium transition-colors duration-200"
+              >
+                <Shield className="w-4 h-4" />
+                <span>Admin Panel</span>
+              </Link>
+            )}
+          </div>
 
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center space-x-4">
             {/* Dark Mode Toggle */}
             <button
               onClick={toggleDarkMode}
-              className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {darkMode ? (
-                <Sun className="w-5 h-5" />
+                <Sun className="w-5 h-5 text-yellow-500" />
               ) : (
-                <Moon className="w-5 h-5" />
+                <Moon className="w-5 h-5 text-gray-600" />
               )}
             </button>
 
+            {/* User Menu */}
             {user ? (
-              <>
-                <Link
-                  to="/my-bookings"
-                  className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+              <div className="relative">
+                <button
+                  onClick={toggleUserMenu}
+                  className="flex items-center space-x-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
-                  My Bookings
-                </Link>
+                  <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center">
+                    <span className="text-white font-medium text-sm">
+                      {user.name?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {user.name}
+                  </span>
+                </button>
 
-                {user.role === 'admin' && (
-                  <Link
-                    to="/admin"
-                    className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-                  >
-                    Admin Panel
-                  </Link>
+                {/* User Dropdown */}
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 card shadow-soft-dark animate-fade-in">
+                    <div className="py-1">
+                      <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {user.name}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {user.email}
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Logout</span>
+                      </button>
+                    </div>
+                  </div>
                 )}
-
-                <div className="flex items-center space-x-2">
-                  <span className="text-gray-300 text-sm hidden lg:block">
-                    Welcome, {user.name}
-                  </span>
-                  <span className="text-yellow-400 text-xs bg-gray-700 dark:bg-gray-600 px-2 py-1 rounded">
-                    {user.role}
-                  </span>
-                  <button
-                    onClick={handleLogout}
-                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm font-medium"
-                  >
-                    Logout
-                  </button>
-                </div>
-              </>
+              </div>
             ) : (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
                 <Link
                   to="/login"
-                  className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                  className="btn-ghost"
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium"
+                  className="btn-primary"
                 >
-                  Register
+                  Sign Up
                 </Link>
               </div>
             )}
@@ -113,104 +166,133 @@ const Navbar: React.FC = () => {
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center space-x-2">
-            {/* Dark Mode Toggle for Mobile */}
             <button
               onClick={toggleDarkMode}
-              className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {darkMode ? (
-                <Sun className="w-5 h-5" />
+                <Sun className="w-5 h-5 text-yellow-500" />
               ) : (
-                <Moon className="w-5 h-5" />
+                <Moon className="w-5 h-5 text-gray-600" />
               )}
             </button>
-
             <button
               onClick={toggleMobileMenu}
-              className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               aria-label="Toggle mobile menu"
             >
               {isMobileMenuOpen ? (
-                <X className="w-6 h-6" />
+                <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
               ) : (
-                <Menu className="w-6 h-6" />
+                <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />
               )}
             </button>
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-800 dark:bg-gray-900 border-t border-gray-700">
-              <Link
-                to="/movies"
-                className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
-                onClick={closeMobileMenu}
-              >
-                Movies
-              </Link>
-
-              {user ? (
-                <>
-                  <Link
-                    to="/my-bookings"
-                    className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
-                    onClick={closeMobileMenu}
-                  >
-                    My Bookings
-                  </Link>
-
-                  {user.role === 'admin' && (
-                    <Link
-                      to="/admin"
-                      className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
-                      onClick={closeMobileMenu}
-                    >
-                      Admin Panel
-                    </Link>
-                  )}
-
-                  <div className="px-3 py-2">
-                    <div className="text-gray-300 text-sm mb-2">
-                      Welcome, {user.name}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-yellow-400 text-xs bg-gray-700 dark:bg-gray-600 px-2 py-1 rounded">
-                        Role: {user.role}
-                      </span>
-                      <button
-                        onClick={handleLogout}
-                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm font-medium"
-                      >
-                        Logout
-                      </button>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col space-y-2 px-3 py-2">
-                  <Link
-                    to="/login"
-                    className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium"
-                    onClick={closeMobileMenu}
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-base font-medium text-center"
-                    onClick={closeMobileMenu}
-                  >
-                    Register
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Mobile Navigation */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden glass border-t border-white/20 dark:border-gray-800/20 animate-slide-up">
+          <div className="px-4 py-2 space-y-1">
+            <Link
+              to="/"
+              className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
+              onClick={closeMenus}
+            >
+              Home
+            </Link>
+            <Link
+              to="/movies"
+              className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
+              onClick={closeMenus}
+            >
+              Movies
+            </Link>
+            <Link
+              to="/showtimes"
+              className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
+              onClick={closeMenus}
+            >
+              Showtimes
+            </Link>
+            {user && (
+              <Link
+                to="/my-bookings"
+                className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
+                onClick={closeMenus}
+              >
+                My Bookings
+              </Link>
+            )}
+            {user?.role === 'admin' && (
+              <Link
+                to="/admin"
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg text-primary hover:text-primary/80 hover:bg-primary/10 font-medium transition-colors duration-200"
+                onClick={closeMenus}
+              >
+                <Shield className="w-4 h-4" />
+                <span>Admin Panel</span>
+              </Link>
+            )}
+            
+            {/* Mobile User Section */}
+            {user ? (
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                <div className="px-3 py-2">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {user.name}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {user.email}
+                  </p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            ) : (
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2 space-y-2">
+                <Link
+                  to="/login"
+                  className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
+                  onClick={closeMenus}
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="block px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors duration-200"
+                  onClick={closeMenus}
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Backdrop for mobile menu */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+          onClick={closeMenus}
+        />
+      )}
+
+      {/* Backdrop for user menu */}
+      {isUserMenuOpen && (
+        <div 
+          className="fixed inset-0 z-40"
+          onClick={() => setIsUserMenuOpen(false)}
+        />
+      )}
     </nav>
   );
 };

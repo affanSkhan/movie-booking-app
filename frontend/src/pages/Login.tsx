@@ -9,21 +9,34 @@ import { useAuth } from '../contexts/AuthContextInstance';
 import Toast from '../components/ui/Toast';
 import type { ToastType } from '../components/ui/Toast';
 import { AxiosError } from 'axios';
+import { Film, Clock, CreditCard, Zap, Mail, Lock } from 'lucide-react';
 
 const Login: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showAdminMessage, setShowAdminMessage] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '', rememberMe: false },
   });
+
+  // Watch email field to clear admin message when user starts typing
+  const emailValue = watch('email');
+  
+  // Clear admin message when email changes
+  React.useEffect(() => {
+    if (emailValue && showAdminMessage) {
+      setShowAdminMessage(false);
+    }
+  }, [emailValue, showAdminMessage]);
 
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
@@ -46,6 +59,10 @@ const Login: React.FC = () => {
       let message = 'Login failed. Please try again.';
       if (err instanceof AxiosError && err.response?.data?.message) {
         message = err.response.data.message;
+        if (err.response.status === 403 && message.includes('admin')) {
+          message = 'This appears to be an admin account. Please use the Admin Login instead.';
+          setShowAdminMessage(true);
+        }
       }
       setToast({ message, type: 'error' });
     } finally {
@@ -70,7 +87,9 @@ const Login: React.FC = () => {
           transition={{ delay: 0.3, duration: 0.8 }}
           className="relative z-10"
         >
-          <div className="text-5xl lg:text-6xl mb-4 lg:mb-6">🎬</div>
+          <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white/20 rounded-2xl flex items-center justify-center mb-4 lg:mb-6">
+            <Film className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
+          </div>
           <h1 className="text-3xl lg:text-4xl font-bold mb-3 lg:mb-4">Welcome Back!</h1>
           <p className="text-lg lg:text-xl mb-6 lg:mb-8 text-blue-100">
             Sign in to your account and continue your movie booking journey
@@ -78,19 +97,19 @@ const Login: React.FC = () => {
           <div className="space-y-3 lg:space-y-4">
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-xs lg:text-sm">🎥</span>
+                <Clock className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
               </div>
               <span className="text-sm lg:text-base text-blue-100">Real-time seat booking</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-xs lg:text-sm">💳</span>
+                <CreditCard className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
               </div>
               <span className="text-sm lg:text-base text-blue-100">Secure payment processing</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-xs lg:text-sm">⚡</span>
+                <Zap className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
               </div>
               <span className="text-sm lg:text-base text-blue-100">Instant booking confirmation</span>
             </div>
@@ -107,7 +126,9 @@ const Login: React.FC = () => {
       >
         <div className="w-full max-w-sm sm:max-w-md">
           <div className="lg:hidden text-center mb-6 sm:mb-8">
-            <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">🎬</div>
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <Film className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+            </div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back!</h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Sign in to your account</p>
           </div>
@@ -142,9 +163,7 @@ const Login: React.FC = () => {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                    </svg>
+                    <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                   </div>
                   <input
                     id="email"
@@ -167,9 +186,7 @@ const Login: React.FC = () => {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
+                    <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                   </div>
                   <input
                     id="password"
@@ -246,6 +263,31 @@ const Login: React.FC = () => {
                 Admin Login
               </Link>
             </div>
+
+            {/* Admin Message */}
+            {showAdminMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg"
+              >
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                      Admin Account Detected
+                    </h3>
+                    <div className="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                      <p>This appears to be an admin account. Please use the Admin Login above to access the admin panel.</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             {/* Register Link */}
             <div className="mt-4 sm:mt-6 text-center">
