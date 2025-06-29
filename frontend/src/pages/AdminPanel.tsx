@@ -620,13 +620,20 @@ const AdminPanel: React.FC = () => {
                               <div className="flex-shrink-0 h-10 w-10">
                                 <img
                                   className="h-10 w-10 rounded-full object-cover"
-                                  src={movie.poster_url || 'https://via.placeholder.com/40x40'}
+                                  src={movie.poster_url || '/fallback-movie.png'}
                                   alt=""
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = '/fallback-movie.png';
+                                  }}
                                 />
                               </div>
                               <div className="ml-4">
                                 <div className="text-sm font-medium text-gray-900 dark:text-white">{movie.title}</div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400">{movie.description}</div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate whitespace-normal break-words" title={movie.description}>
+                                  {movie.description.split(' ').length > 6
+                                    ? movie.description.split(' ').slice(0, 6).join(' ') + '...'
+                                    : movie.description}
+                                </div>
                               </div>
                             </div>
                           </td>
