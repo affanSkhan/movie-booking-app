@@ -1,0 +1,28 @@
+{
+  "name": "movie-booking-system",
+  "version": "1.0.0",
+  "description": "Movie Booking System - Full Stack Application",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build": "cd backend && bun run build",
+    "start": "cd backend && bun run start",
+    "dev": "cd backend && bun run dev"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  },
+  "keywords": [
+    "movie",
+    "booking",
+    "react",
+    "nodejs",
+    "postgresql"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+} 
