@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
@@ -178,6 +178,15 @@ const AppRoutes: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  // 🕒 Keeps the Render backend awake by pinging it every 5 minutes
+  useEffect(() => {
+    const backendUrl = import.meta.env.VITE_API_URL || 'https://your-backend.onrender.com';
+    const interval = setInterval(() => {
+      fetch(`${backendUrl}/health`).catch(() => {});
+    }, 300000); // 5 minutes
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <AuthProvider>
       <SocketProvider>
