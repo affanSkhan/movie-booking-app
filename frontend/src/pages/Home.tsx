@@ -1,82 +1,59 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, Filter, Calendar, ChevronLeft, ChevronRight, Play, Star, Clock, Sparkles, Zap, Shield } from 'lucide-react';
+import { moviesAPI } from '../services/api';
 
-// Placeholder data for movies
-const sampleMovies = [
-  {
-    id: 1,
-    title: 'Inception',
-    genre: 'Sci-Fi',
-    language: 'English',
-    duration: 148,
-    rating: 4.8,
-    poster_url: 'https://image.tmdb.org/t/p/w500/qmDpIHrmpJINaRKAfWQfftjCdyi.jpg',
-  },
-  {
-    id: 2,
-    title: 'Parasite',
-    genre: 'Thriller',
-    language: 'Korean',
-    duration: 132,
-    rating: 4.9,
-    poster_url: 'https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg',
-  },
-  {
-    id: 3,
-    title: 'Interstellar',
-    genre: 'Sci-Fi',
-    language: 'English',
-    duration: 169,
-    rating: 4.7,
-    poster_url: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
-  },
-  {
-    id: 4,
-    title: '3 Idiots',
-    genre: 'Comedy',
-    language: 'Hindi',
-    duration: 170,
-    rating: 4.6,
-    poster_url: 'https://image.tmdb.org/t/p/w500/66VbK5GqUoL1hFQ2y8bJ5yQ9gkR.jpg',
-  },
-  {
-    id: 5,
-    title: 'Joker',
-    genre: 'Drama',
-    language: 'English',
-    duration: 122,
-    rating: 4.5,
-    poster_url: 'https://image.tmdb.org/t/p/w500/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg',
-  },
-  {
-    id: 6,
-    title: 'Dangal',
-    genre: 'Drama',
-    language: 'Hindi',
-    duration: 161,
-    rating: 4.8,
-    poster_url: 'https://image.tmdb.org/t/p/w500/p2lVAcPuRPSO8Al6hDDGw0OgMi8.jpg',
-  },
-];
-
-const genres = ['All', 'Sci-Fi', 'Thriller', 'Comedy', 'Drama'];
-const languages = ['All', 'English', 'Hindi', 'Korean'];
+interface Movie {
+  id: number;
+  title: string;
+  description: string;
+  poster_url?: string;
+  duration?: number;
+  created_at: string;
+}
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [genre, setGenre] = useState('All');
   const [language, setLanguage] = useState('All');
   const [date, setDate] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Fetch movies from API
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        setLoading(true);
+        const response = await moviesAPI.getAll();
+        setMovies(response.data);
+      } catch (err) {
+        console.error('Error fetching movies:', err);
+        setError('Failed to load movies. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMovies();
+  }, []);
+
+  // Get unique genres and languages from movies
+  const genres = ['All', ...Array.from(new Set(movies.map(movie => movie.description?.split(' ')[0] || 'Other').filter(Boolean)))];
+  const languages = ['All', ...Array.from(new Set(movies.map(movie => movie.description?.split(' ').slice(-1)[0] || 'Other').filter(Boolean)))];
+
   // Filtered movies
-  const filteredMovies = sampleMovies.filter((movie) => {
-    const matchesSearch = movie.title.toLowerCase().includes(search.toLowerCase());
-    const matchesGenre = genre === 'All' || movie.genre === genre;
-    const matchesLanguage = language === 'All' || movie.language === language;
+  const filteredMovies = movies.filter((movie) => {
+    const matchesSearch = movie.title.toLowerCase().includes(search.toLowerCase()) ||
+                         movie.description?.toLowerCase().includes(search.toLowerCase());
+    const movieGenre = movie.description?.split(' ')[0] || 'Other';
+    const movieLanguage = movie.description?.split(' ').slice(-1)[0] || 'Other';
+    const matchesGenre = genre === 'All' || movieGenre === genre;
+    const matchesLanguage = language === 'All' || movieLanguage === language;
     return matchesSearch && matchesGenre && matchesLanguage;
   });
 
@@ -89,6 +66,61 @@ const Home: React.FC = () => {
       });
     }
   };
+
+  // Format duration
+  const formatDuration = (minutes?: number) => {
+    if (!minutes) return 'N/A';
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center">
+        <motion.div 
+          className="text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-6"></div>
+            <motion.div
+              className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-primary/40 rounded-full animate-spin"
+              style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}
+            />
+          </div>
+          <p className="text-muted-foreground text-lg">Loading movies...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center">
+        <motion.div 
+          className="text-center bg-card border border-border/50 rounded-2xl p-8 shadow-lg backdrop-blur-sm"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="text-destructive text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-foreground mb-2">Oops! Something went wrong</h2>
+          <p className="text-muted-foreground mb-6">{error}</p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => window.location.reload()}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-xl font-medium transition-colors duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+          >
+            Try Again
+          </motion.button>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20">
@@ -368,9 +400,13 @@ const Home: React.FC = () => {
                     {/* Enhanced Movie Poster */}
                     <div className="relative aspect-[2/3] overflow-hidden rounded-t-2xl">
                       <img
-                        src={movie.poster_url}
+                        src={movie.poster_url || 'https://via.placeholder.com/300x450/1f2937/ffffff?text=No+Poster'}
                         alt={movie.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://via.placeholder.com/300x450/1f2937/ffffff?text=No+Poster';
+                        }}
                       />
                       
                       {/* Enhanced overlay with gradient */}
@@ -391,15 +427,7 @@ const Home: React.FC = () => {
                       <div className="absolute top-3 right-3 backdrop-blur-md bg-white/20 dark:bg-black/40 border border-white/30 dark:border-white/10 px-3 py-1.5 rounded-full flex items-center space-x-1">
                         <Clock className="w-3 h-3 text-white" />
                         <span className="text-xs text-white font-medium">
-                          {Math.floor(movie.duration / 60)}h {movie.duration % 60}m
-                        </span>
-                      </div>
-
-                      {/* Enhanced Rating badge */}
-                      <div className="absolute top-3 left-3 backdrop-blur-md bg-white/20 dark:bg-black/40 border border-white/30 dark:border-white/10 px-3 py-1.5 rounded-full flex items-center space-x-1">
-                        <Star className="w-3 h-3 text-yellow-400" fill="currentColor" />
-                        <span className="text-xs text-white font-medium">
-                          {movie.rating}
+                          {formatDuration(movie.duration)}
                         </span>
                       </div>
                     </div>
@@ -412,10 +440,10 @@ const Home: React.FC = () => {
                       
                       <div className="flex items-center gap-2 mb-4">
                         <span className="text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-full font-medium">
-                          {movie.genre}
+                          {movie.description?.split(' ')[0] || 'Movie'}
                         </span>
                         <span className="text-xs bg-muted text-muted-foreground px-3 py-1.5 rounded-full font-medium">
-                          {movie.language}
+                          {movie.description?.split(' ').slice(-1)[0] || 'English'}
                         </span>
                       </div>
                       
@@ -545,7 +573,7 @@ const Home: React.FC = () => {
                 </a>
                 <a href="#" aria-label="Instagram" className="hover:text-primary transition-colors duration-200">
                   <svg fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.334 3.85.77 1.266.456 2.35 1.08 3.434 2.164 1.084 1.084 1.708 2.168 2.164 3.434.436 1.217.708 2.484.77 3.85.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.062 1.366-.334 2.633-.77 3.85-.456 1.266-1.08 2.35-2.164 3.434-1.084 1.084-2.168 1.708-3.434 2.164-1.217.436-2.484.708-3.85.77-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.334-3.85-.77-1.266-.456-2.35-1.08-3.434-2.164-1.084-1.084-1.708-2.168-2.164-3.434-.436-1.217-.708-2.484-.77-3.85-.058-1.266-.07-1.646-.07-4.85s.012-3.584.07-4.85c.062-1.366.334-2.633.77-3.85.456-1.266 1.08-2.35 2.164-3.434 1.084-1.084 2.168-1.708 3.434-2.164 1.217-.436 2.484-.708 3.85-.77 1.266-.058 1.646-.07 4.85-.07z"/>
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.334 3.85.77 1.266.456 2.35 1.08 3.434 2.164 1.084 1.084 1.708 2.168 2.164 3.434.436 1.217.708 2.484.77 3.85.058 1.266.07 1.646.07 4.85.07s-.012 3.584-.07 4.85c-.062 1.366-.334 2.633-.77 3.85-.456 1.266-1.08 2.35-2.164 3.434-1.084 1.084-2.168 1.708-3.434 2.164-1.217.436-2.484.708-3.85.77-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.334-3.85-.77-1.266-.456-2.35-1.08-3.434-2.164-1.084-1.084-1.708-2.168-2.164-3.434-.436-1.217-.708-2.484-.77-3.85-.058-1.266-.07-1.646-.07-4.85s.012-3.584.07-4.85c.062-1.366.334-2.633.77-3.85.456-1.266 1.08-2.35 2.164-3.434 1.084-1.084 2.168-1.708 3.434-2.164 1.217-.436 2.484-.708 3.85-.77 1.266-.058 1.646-.07 4.85-.07z"/>
                   </svg>
                 </a>
               </div>

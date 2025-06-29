@@ -17,78 +17,121 @@ export const getSeatsByShow = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { showId } = req.params;
 
-    let result = await pool.query(
-      `SELECT s.*, 
-            CASE 
-              WHEN s.status = 'locked' AND s.lock_expires_at < NOW() THEN 'available'
-              ELSE s.status 
-            END as current_status,
-            s.locked_by,
-            s.lock_expires_at
-     FROM seats s 
-     WHERE s.show_id = $1 
-     ORDER BY s.row_number, s.col_number`,
-      [showId],
-    );
+    try {
+      // First, check if the required columns exist
+      const columnCheck = await pool.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'seats' 
+        AND column_name IN ('locked_by', 'lock_expires_at')
+      `);
+      
+      const hasLockedBy = columnCheck.rows.some(row => row.column_name === 'locked_by');
+      const hasLockExpires = columnCheck.rows.some(row => row.column_name === 'lock_expires_at');
 
-    // If no seats exist, create them automatically (10x10 grid)
-    if (result.rows.length === 0) {
-      console.log(
-        `No seats found for show ${showId}, creating default 10x10 grid`,
-      );
-
-      // Check if show exists
-      const showCheck = await pool.query("SELECT id FROM shows WHERE id = $1", [
-        showId,
-      ]);
-
-      if (showCheck.rows.length === 0) {
-        throw createError("Show not found", 404);
+      let result;
+      
+      if (hasLockedBy && hasLockExpires) {
+        // Use the full query with locking columns
+        result = await pool.query(
+          `SELECT s.*, 
+                CASE 
+                  WHEN s.status = 'locked' AND s.lock_expires_at < NOW() THEN 'available'
+                  ELSE s.status 
+                END as current_status,
+                s.locked_by,
+                s.lock_expires_at
+         FROM seats s 
+         WHERE s.show_id = $1 
+         ORDER BY s.row_number, s.col_number`,
+          [showId],
+        );
+      } else {
+        // Use simplified query without locking columns
+        console.log("⚠️ Locking columns not found, using simplified query");
+        result = await pool.query(
+          `SELECT s.*, s.status as current_status
+         FROM seats s 
+         WHERE s.show_id = $1 
+         ORDER BY s.row_number, s.col_number`,
+          [showId],
+        );
       }
 
-      // Create 10x10 grid (A1 to J10)
-      const seatRows = Array.from({ length: 10 }, (_, i) =>
-        String.fromCharCode(65 + i),
-      ); // A, B, C, ..., J
-      const seatColumns = Array.from({ length: 10 }, (_, i) => i + 1);
+      // If no seats exist, create them automatically (10x10 grid)
+      if (result.rows.length === 0) {
+        console.log(
+          `No seats found for show ${showId}, creating default 10x10 grid`,
+        );
 
-      for (const row of seatRows) {
-        for (const col of seatColumns) {
-          const seatNumber = `${row}${col}`;
-          await pool.query(
-            "INSERT INTO seats (show_id, seat_number, row_number, col_number, status) VALUES ($1, $2, $3, $4, $5)",
-            [showId, seatNumber, seatRows.indexOf(row) + 1, col, "available"],
+        // Check if show exists
+        const showCheck = await pool.query("SELECT id FROM shows WHERE id = $1", [
+          showId,
+        ]);
+
+        if (showCheck.rows.length === 0) {
+          throw createError("Show not found", 404);
+        }
+
+        // Create 10x10 grid (A1 to J10)
+        const seatRows = Array.from({ length: 10 }, (_, i) =>
+          String.fromCharCode(65 + i),
+        ); // A, B, C, ..., J
+        const seatColumns = Array.from({ length: 10 }, (_, i) => i + 1);
+
+        for (const row of seatRows) {
+          for (const col of seatColumns) {
+            const seatNumber = `${row}${col}`;
+            await pool.query(
+              "INSERT INTO seats (show_id, seat_number, row_number, col_number, status) VALUES ($1, $2, $3, $4, $5)",
+              [showId, seatNumber, seatRows.indexOf(row) + 1, col, "available"],
+            );
+          }
+        }
+
+        // Fetch the newly created seats
+        if (hasLockedBy && hasLockExpires) {
+          result = await pool.query(
+            `SELECT s.*, 
+                  CASE 
+                    WHEN s.status = 'locked' AND s.lock_expires_at < NOW() THEN 'available'
+                    ELSE s.status 
+                  END as current_status,
+                  s.locked_by,
+                  s.lock_expires_at
+           FROM seats s 
+           WHERE s.show_id = $1 
+           ORDER BY s.row_number, s.col_number`,
+            [showId],
+          );
+        } else {
+          result = await pool.query(
+            `SELECT s.*, s.status as current_status
+           FROM seats s 
+           WHERE s.show_id = $1 
+           ORDER BY s.row_number, s.col_number`,
+            [showId],
           );
         }
       }
 
-      // Fetch the newly created seats
-      result = await pool.query(
-        `SELECT s.*, 
-              CASE 
-                WHEN s.status = 'locked' AND s.lock_expires_at < NOW() THEN 'available'
-                ELSE s.status 
-              END as current_status,
-              s.locked_by,
-              s.lock_expires_at
-       FROM seats s 
-       WHERE s.show_id = $1 
-       ORDER BY s.row_number, s.col_number`,
-        [showId],
-      );
+      // Clean up any expired locks before returning (only if columns exist)
+      if (hasLockedBy && hasLockExpires) {
+        await pool.query(
+          `UPDATE seats 
+         SET status = 'available', 
+             locked_by = NULL, 
+             locked_at = NULL, 
+             lock_expires_at = NULL 
+         WHERE status = 'locked' AND lock_expires_at < NOW()`,
+        );
+      }
+
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Error in getSeatsByShow:", error);
+      throw createError("Failed to fetch seats", 500);
     }
-
-    // Clean up any expired locks before returning
-    await pool.query(
-      `UPDATE seats 
-     SET status = 'available', 
-         locked_by = NULL, 
-         locked_at = NULL, 
-         lock_expires_at = NULL 
-     WHERE status = 'locked' AND lock_expires_at < NOW()`,
-    );
-
-    res.json(result.rows);
   },
 );
 
