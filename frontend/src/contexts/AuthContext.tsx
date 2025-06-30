@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { authAPI } from '../services/api';
 import { AuthContext } from './AuthContextInstance';
+import type { AxiosError } from 'axios';
 
 interface User {
   id: number;
@@ -58,12 +59,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const adminLogin = async (email: string, password: string) => {
-    const response = await authAPI.adminLogin({ email, password });
-    const { token: newToken, user: userData } = response.data;
-    setToken(newToken);
-    setUser(userData);
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(userData));
+    try {
+      const response = await authAPI.adminLogin({ email, password });
+      const { token: newToken, user: userData } = response.data;
+      setToken(newToken);
+      setUser(userData);
+      localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+    } catch (err: unknown) {
+      // Pass the error up so the page can show the backend message
+      if (
+        err && typeof err === 'object' && 'isAxiosError' in err && (err as AxiosError).isAxiosError
+      ) {
+        const axiosErr = err as AxiosError<{ message?: string }>;
+        if (axiosErr.response && axiosErr.response.data && axiosErr.response.data.message) {
+          throw new Error(axiosErr.response.data.message);
+        }
+      }
+      throw err;
+    }
   };
 
   const register = async (name: string, email: string, password: string) => {

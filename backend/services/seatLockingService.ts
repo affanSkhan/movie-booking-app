@@ -356,7 +356,7 @@ class SeatLockingService {
   /**
    * Unlock seats after failed payment
    */
-  async unlockSeatsAfterFailedPayment(
+  public async unlockSeatsAfterFailedPayment(
     seatNumbers: string[],
     showId: string,
     userId: number,

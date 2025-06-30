@@ -118,19 +118,23 @@ export const adminLogin = asyncHandler(
     ]);
 
     if (result.rows.length === 0) {
+      console.log(`[ADMIN LOGIN] Email not found: ${email}`);
       throw createError("Invalid credentials", 401);
     }
 
     const user = result.rows[0];
+    console.log(`[ADMIN LOGIN] Email entered: ${email}, Role from DB: ${user.role}`);
 
     // Check password
     const isValidPassword = await bcrypt.compare(password, user.password);
 
     if (!isValidPassword) {
+      console.log(`[ADMIN LOGIN] Invalid password for email: ${email}`);
       throw createError("Invalid credentials", 401);
     }
 
     if (user.role !== "admin") {
+      console.log(`[ADMIN LOGIN] User is not admin: ${email}, role: ${user.role}`);
       throw createError("Admin access required", 403);
     }
 
