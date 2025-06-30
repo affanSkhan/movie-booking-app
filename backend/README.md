@@ -1,24 +1,25 @@
 # Movie Booking System - Backend API
 
-A comprehensive backend API for a movie booking system with real-time seat management, user authentication, and admin panel functionality.
+A comprehensive backend API for a movie booking system with real-time seat management, user authentication, payment integration, and a modern admin panel. Built with Bun, Express, TypeScript, and PostgreSQL.
 
 ## Features
 
-- **User Authentication**: JWT-based authentication with role-based access control
-- **Movie Management**: CRUD operations for movies (admin only)
-- **Show Management**: Create and manage movie shows with showtimes
-- **Real-time Seat Booking**: Socket.IO integration for live seat updates
-- **Payment Integration**: Razorpay integration for ticket payments
-- **Admin Panel**: Dashboard with analytics and user management
-- **Database**: PostgreSQL with proper relationships and constraints
+- **User Authentication**: JWT-based, role-based access
+- **Movie Management**: CRUD for movies (admin only)
+- **Show Management**: Create/manage shows with showtimes
+- **Real-time Seat Booking**: Socket.IO for live seat updates
+- **Payment Integration**: Razorpay for ticket payments
+- **Admin Panel**: Dashboard analytics, user management
+- **Database**: PostgreSQL with relationships and constraints
+- **Security**: Input validation, password hashing, CORS, SQL injection prevention
 
 ## Tech Stack
 
-- **Runtime**: Bun (Node.js alternative)
-- **Framework**: Express.js with TypeScript
+- **Runtime**: Bun (recommended, Node.js alternative)
+- **Framework**: Express.js + TypeScript
 - **Database**: PostgreSQL
 - **Real-time**: Socket.IO
-- **Authentication**: JWT with bcrypt
+- **Authentication**: JWT + bcrypt
 - **Payment**: Razorpay (test mode)
 
 ## Project Structure
@@ -51,24 +52,22 @@ backend/
 └── package.json
 ```
 
-## API Endpoints
+## API Endpoints (Sample)
 
 ### Authentication
 
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User login
 - `GET /api/auth/profile` - Get user profile (authenticated)
+- `POST /api/auth/admin-login` - Admin login
 
-### Movies (Public)
+### Movies
 
 - `GET /api/movies` - Get all movies
 - `GET /api/movies/:id` - Get movie by ID
-
-### Movies (Admin)
-
-- `POST /api/movies` - Create new movie
-- `PUT /api/movies/:id` - Update movie
-- `DELETE /api/movies/:id` - Delete movie
+- `POST /api/movies` - Create new movie (admin)
+- `PUT /api/movies/:id` - Update movie (admin)
+- `DELETE /api/movies/:id` - Delete movie (admin)
 
 ### Shows
 
@@ -119,12 +118,12 @@ backend/
 
 The system uses PostgreSQL with the following main tables:
 
-- `users` - User accounts and authentication
-- `movies` - Movie information
-- `shows` - Movie showtimes
-- `seats` - Seat availability and status
+- `users` - User accounts
+- `movies` - Movie info
+- `shows` - Showtimes
+- `seats` - Seat status
 - `bookings` - Booking records
-- `booking_seats` - Many-to-many relationship between bookings and seats
+- `booking_seats` - Booked seats
 
 ## Setup Instructions
 
@@ -146,7 +145,7 @@ The system uses PostgreSQL with the following main tables:
    JWT_SECRET=your-super-secret-jwt-key
    PORT=3001
    NODE_ENV=development
-   FRONTEND_URL=http://localhost:5173
+   FRONTEND_URL=https://movie-booking-frontend.netlify.app
    RAZORPAY_KEY_ID=rzp_test_your_test_key_id
    RAZORPAY_KEY_SECRET=your_test_key_secret
    ```
@@ -156,40 +155,51 @@ The system uses PostgreSQL with the following main tables:
    bun run dev
    ```
 
+## Deployment
+
+- **Backend deployed on Render**: https://movie-booking-backend.onrender.com
+- **Frontend deployed on Netlify**: https://movie-booking-frontend.netlify.app
+
 ## Real-time Features
 
-- **Seat Locking**: When a user selects a seat, it's locked for 3 minutes
-- **Auto-unlock**: Seats are automatically unlocked if not confirmed within 3 minutes
-- **Live Updates**: All connected users see seat status changes in real-time
-- **Race Condition Prevention**: Database-level locking prevents double bookings
+- **Seat Locking**: Seats are locked for 3 minutes when selected
+- **Auto-unlock**: Seats auto-unlock if not confirmed
+- **Live Updates**: All users see seat status changes instantly
+- **Race Condition Prevention**: DB-level locking prevents double bookings
 
 ## Security Features
 
-- JWT-based authentication
-- Password hashing with bcrypt
-- Role-based access control
-- Input validation and sanitization
-- SQL injection prevention with parameterized queries
+- JWT authentication
+- Password hashing (bcrypt)
+- Role-based access
+- Input validation (zod)
+- SQL injection prevention
 - CORS configuration
 
 ## Payment Integration
 
-- Razorpay test mode integration
-- Order creation before payment
-- Payment verification
-- Booking confirmation after successful payment
+- Razorpay test mode
+- Order creation, payment verification, booking confirmation
 
 ## Error Handling
 
-- Centralized error handling middleware
-- Consistent error response format
+- Centralized error middleware
+- Consistent error responses
 - Proper HTTP status codes
-- Detailed error logging
+- Error logging
 
 ## Development
 
 - TypeScript for type safety
-- Modular architecture with controllers and routes
-- Async/await for clean asynchronous code
-- Comprehensive error handling
-- Clean code practices with proper separation of concerns
+- Modular architecture
+- Async/await for clean code
+- Clean code practices
+
+## Related
+
+- See the root `README.md` and `frontend/README.md` for full-stack setup, UI/UX, and deployment.
+- For admin panel and analytics, see frontend documentation.
+
+## License
+
+MIT

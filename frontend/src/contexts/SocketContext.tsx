@@ -101,6 +101,14 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (!user && socket) {
+      socket.close();
+      setSocket(null);
+      setIsConnected(false);
+    }
+  }, [user]);
+
   const authenticateSocket = () => {
     if (socket && user && isConnected) {
       socket.emit('authenticate', {

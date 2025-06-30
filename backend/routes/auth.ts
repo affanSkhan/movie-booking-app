@@ -1,5 +1,6 @@
 import express from "express";
-import { register, login, adminLogin } from "../controllers/authController";
+import { register, login, adminLogin, getProfile } from "../controllers/authController";
+import { authenticateToken } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 
@@ -11,5 +12,8 @@ router.post("/login", login);
 
 // Admin login
 router.post("/admin-login", adminLogin);
+
+// Get current user profile
+router.get("/profile", authenticateToken, getProfile);
 
 export default router;

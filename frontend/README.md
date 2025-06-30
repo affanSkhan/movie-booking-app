@@ -1,15 +1,17 @@
 # Movie Booking System - Frontend
 
-A modern React-based frontend for the Movie Booking System with real-time seat selection and payment integration.
+A modern React-based frontend for the Movie Booking System with real-time seat selection, payment integration, dark mode, and a beautiful, accessible admin panel.
 
 ## 🚀 Features
 
-- **Modern UI/UX**: Built with React, TypeScript, and Tailwind CSS
-- **Real-time Seat Selection**: Socket.IO integration for live seat updates
+- **Modern UI/UX**: Glassmorphism, gradients, custom buttons/inputs, smooth transitions (Framer Motion)
+- **Dark Mode**: Toggleable, system-aware, accessible (Tailwind + CSS variables)
+- **Real-time Seat Selection**: Socket.IO for live seat updates
 - **Payment Integration**: Razorpay payment gateway
-- **Responsive Design**: Mobile-first approach
+- **Responsive Design**: Mobile-first, tablet, and desktop support
+- **Accessibility**: ARIA labels, keyboard navigation, focus indicators, color contrast
 - **Authentication**: JWT-based user authentication
-- **Admin Panel**: Complete admin interface for managing movies, shows, and bookings
+- **Admin Panel**: Sidebar-based dashboard, stats, charts (Recharts), real-time analytics
 
 ## 📁 Project Structure
 
@@ -19,42 +21,42 @@ src/
 │   ├── Navbar.tsx      # Navigation bar
 │   ├── MovieCard.tsx   # Movie display card
 │   ├── SeatMap.tsx     # Interactive seat selection
-│   └── PaymentForm.tsx # Payment form with Razorpay
+│   ├── PaymentForm.tsx # Payment form with Razorpay
+│   └── admin/          # Admin panel components
 ├── pages/              # Page components
-│   ├── Home.tsx        # Movie listing page
-│   ├── MovieDetails.tsx # Movie details with showtimes
-│   ├── ShowBooking.tsx # Seat selection and booking
+│   ├── Home.tsx        # Movie listing
+│   ├── MovieDetails.tsx # Movie details
+│   ├── ShowBooking.tsx # Seat selection/booking
 │   ├── BookingSuccess.tsx # Booking confirmation
-│   ├── AdminLogin.tsx  # Admin login page
+│   ├── AdminLogin.tsx  # Admin login
 │   └── AdminPanel.tsx  # Admin dashboard
 ├── contexts/           # React contexts
-│   ├── AuthContext.tsx # Authentication state management
-│   └── SocketContext.tsx # Socket.IO connection management
 ├── services/           # API services
-│   └── api.ts         # HTTP client and API endpoints
-├── hooks/              # Custom React hooks
+├── hooks/              # Custom hooks
 ├── utils/              # Utility functions
-├── App.tsx            # Main app component with routing
-└── main.tsx           # App entry point
+├── App.tsx             # Main app
+└── main.tsx            # Entry point
 ```
 
 ## 🛠️ Tech Stack
 
-- **React 18** - UI library
-- **TypeScript** - Type safety
-- **Vite** - Build tool and dev server
-- **Tailwind CSS** - Styling
-- **React Router** - Client-side routing
-- **Axios** - HTTP client
-- **Socket.IO Client** - Real-time communication
-- **Razorpay** - Payment gateway
+- **React 18** + TypeScript
+- **Vite**
+- **Tailwind CSS** (with CSS variable-based color theming, see `tailwind.config.js`)
+- **Framer Motion** (animations)
+- **Recharts** (admin analytics)
+- **Socket.IO Client**
+- **Razorpay** (payments)
+- **React Router**
+- **Axios**
+- **Zod** (validation)
 
-## 🚀 Getting Started
+## 🧑‍💻 Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ or Bun
-- Backend server running (see backend README)
+- Bun (recommended) or Node.js 18+
+- Backend server running (see backend/README.md)
 
 ### Installation
 
@@ -72,15 +74,15 @@ src/
    ```
 
 3. **Environment Setup**
-   Create a `.env` file in the frontend directory:
+   Create a `.env` file:
    ```env
-   VITE_API_URL=http://localhost:3001/api
+   VITE_API_URL=https://movie-booking-backend.onrender.com/api
    VITE_RAZORPAY_KEY_ID=rzp_test_your_test_key_id
    ```
 
 4. **Start development server**
    ```bash
-   bun dev
+   bun run dev
    # or
    npm run dev
    ```
@@ -88,7 +90,32 @@ src/
 5. **Open in browser**
    Navigate to `http://localhost:5173`
 
-## 📱 Pages & Features
+## 🎨 UI/UX & Accessibility
+
+- **Design Tokens**: Tailwind config uses CSS variables for color theming (see `tailwind.config.js`)
+- **Dark Mode**: Toggle or system preference (`darkMode: 'class'` in Tailwind)
+- **Glassmorphism & Gradients**: Modern, soft backgrounds
+- **Custom Buttons & Inputs**: Consistent, accessible, animated
+- **Transitions**: Framer Motion for page/component transitions
+- **Accessibility**: ARIA labels, keyboard navigation, focus rings, color contrast
+
+## 📊 Admin Panel
+
+- **Sidebar Navigation**: Accessible, keyboard-friendly
+- **Dashboard**: Stats cards, charts (Recharts), real-time analytics (polling/WebSocket-ready)
+- **Modular Components**: Sidebar, StatsCards, DashboardCharts
+- **Live Updates**: Booking stats auto-refresh
+- **Animations**: Framer Motion for smooth transitions
+
+## 🔒 Security
+
+- JWT authentication
+- Password hashing (backend)
+- Role-based access
+- Input validation (zod)
+- CORS configuration
+
+## 🔗 Pages & Features
 
 ### Public Pages
 
@@ -128,59 +155,16 @@ src/
 - **Shows**: Add and manage showtimes
 - **Bookings**: View all bookings
 
-## 🔌 Real-time Features
+## 🛂 Admin Access (Demo)
 
-### Socket.IO Integration
+- **Email**: admin@moviebooking.com
+- **Password**: admin123
 
-The frontend connects to the backend via Socket.IO for real-time seat management:
+## 🧪 QA & Testing
 
-- **Seat Selection**: Users can select/deselect seats in real-time
-- **Live Updates**: Other users see seat status changes immediately
-- **Auto-unlock**: Seats are automatically unlocked after 3 minutes if not paid
-- **Connection Status**: Visual indicator of Socket.IO connection status
-
-### Seat Map Features
-
-- **Color-coded Seats**:
-  - 🟢 Green: Available
-  - 🟡 Yellow: Selected (by current user)
-  - 🔴 Red: Booked/Locked
-- **Interactive Grid**: Click to select/deselect seats
-- **Row/Column Labels**: Clear seat identification
-- **Screen Display**: Visual representation of theater layout
-
-## 💳 Payment Integration
-
-### Razorpay Integration
-
-- **Test Mode**: Uses Razorpay test keys
-- **Secure Payment**: Redirects to Razorpay for payment processing
-- **Payment Confirmation**: Automatic booking confirmation on successful payment
-- **Error Handling**: Graceful handling of payment failures
-
-### Payment Flow
-
-1. User selects seats
-2. Fills customer details (name, email)
-3. Clicks "Pay" button
-4. Razorpay modal opens
-5. User completes payment
-6. Booking is confirmed automatically
-7. Redirected to success page
-
-## 🔐 Authentication
-
-### JWT-based Authentication
-
-- **Token Storage**: JWT tokens stored in localStorage
-- **Auto-refresh**: Automatic token validation on app load
-- **Protected Routes**: Role-based access control
-- **Auto-logout**: Automatic logout on token expiration
-
-### User Roles
-
-- **User**: Can browse movies, book seats, view bookings
-- **Admin**: Full access to admin panel, can manage movies/shows/bookings
+- Linting: `bun run lint`
+- Prettier: `bun run format` (if configured)
+- Manual QA: All user/admin flows, accessibility, mobile, dark mode, real-time
 
 ## 🎨 UI/UX Features
 
@@ -210,15 +194,13 @@ npm run build
 ### Environment Variables for Production
 
 ```env
-VITE_API_URL=https://your-backend-url.com/api
+VITE_API_URL=https://movie-booking-backend.onrender.com/api
 VITE_RAZORPAY_KEY_ID=rzp_live_your_live_key_id
 ```
 
 ### Deployment Platforms
 
-- **Vercel**: Recommended for React apps
-- **Netlify**: Alternative deployment option
-- **GitHub Pages**: Free hosting option
+- **Netlify**: Recommended for React apps
 
 ## 🔧 Development
 
@@ -257,4 +239,10 @@ This project is licensed under the MIT License.
 For support and questions:
 - Create an issue in the repository
 - Check the backend README for API documentation
-- Review the code comments for implementation details 
+- Review the code comments for implementation details
+
+## Related
+
+- See the root `README.md` and `backend/README.md` for full-stack setup, API, and deployment.
+- For custom theming, see Tailwind config and global CSS.
+- For accessibility, see ARIA usage in components. 

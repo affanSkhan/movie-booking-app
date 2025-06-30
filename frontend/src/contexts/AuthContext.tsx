@@ -76,10 +76,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
+    // Clear state
     setToken(null);
     setUser(null);
+    
+    // Clear localStorage
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    
+    // Clear axios default authorization header
+    if (typeof window !== 'undefined') {
+      // Force a page reload to clear any cached API calls
+      window.location.href = '/';
+    }
   };
 
   const value = {
