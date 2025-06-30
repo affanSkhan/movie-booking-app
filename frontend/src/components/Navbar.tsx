@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Moon, Sun, Menu, X, LogOut, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContextInstance';
 import { useDarkMode } from '../hooks/useDarkMode';
+import ReactDOM from 'react-dom';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -196,98 +197,99 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Navigation */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-white/20 dark:border-gray-800/20 animate-slide-up bg-white/80 dark:bg-gray-900/80">
-          <div className="px-4 py-2 space-y-1">
-            <Link
-              to="/"
-              className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
-              onClick={closeMenus}
-            >
-              Home
-            </Link>
-            <Link
-              to="/movies"
-              className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
-              onClick={closeMenus}
-            >
-              Movies
-            </Link>
-            <Link
-              to="/showtimes"
-              className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
-              onClick={closeMenus}
-            >
-              Showtimes
-            </Link>
-            {user && (
+      {/* Mobile menu portal */}
+      {typeof window !== 'undefined' && isMobileMenuOpen && ReactDOM.createPortal(
+        <>
+          {/* Backdrop for mobile menu */}
+          <div 
+            className="fixed left-0 right-0 top-16 bottom-0 bg-black/20 md:hidden"
+            style={{ pointerEvents: 'auto', zIndex: 9999 }}
+            onClick={closeMenus}
+          />
+          {/* Mobile Navigation */}
+          <div className="fixed left-0 right-0 top-16 bg-white/80 dark:bg-gray-900/80 border-t border-white/20 dark:border-gray-800/20 animate-slide-up md:hidden"
+            style={{ zIndex: 9999, pointerEvents: 'auto' }}>
+            <div className="px-4 py-2 space-y-1">
               <Link
-                to="/my-bookings"
+                to="/"
                 className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
-                onClick={closeMenus}
+                onClick={() => { console.log('Mobile Home clicked'); closeMenus(); }}
               >
-                My Bookings
+                Home
               </Link>
-            )}
-            {user?.role === 'admin' && (
               <Link
-                to="/admin"
-                className="flex items-center space-x-2 px-3 py-2 rounded-lg text-primary hover:text-primary/80 hover:bg-primary/10 font-medium transition-colors duration-200"
-                onClick={closeMenus}
+                to="/movies"
+                className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
+                onClick={() => { console.log('Mobile Movies clicked'); closeMenus(); }}
               >
-                <Shield className="w-4 h-4" />
-                <span>Admin Panel</span>
+                Movies
               </Link>
-            )}
-            
-            {/* Mobile User Section */}
-            {user ? (
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-                <div className="px-3 py-2">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {user.name}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {user.email}
-                  </p>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Logout</span>
-                </button>
-              </div>
-            ) : (
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2 space-y-2">
+              <Link
+                to="/showtimes"
+                className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
+                onClick={() => { console.log('Mobile Showtimes clicked'); closeMenus(); }}
+              >
+                Showtimes
+              </Link>
+              {user && (
                 <Link
-                  to="/login"
+                  to="/my-bookings"
                   className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
-                  onClick={closeMenus}
+                  onClick={() => { console.log('Mobile MyBookings clicked'); closeMenus(); }}
                 >
-                  Login
+                  My Bookings
                 </Link>
+              )}
+              {user?.role === 'admin' && (
                 <Link
-                  to="/register"
-                  className="block px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors duration-200"
-                  onClick={closeMenus}
+                  to="/admin"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-lg text-primary hover:text-primary/80 hover:bg-primary/10 font-medium transition-colors duration-200"
+                  onClick={() => { console.log('Mobile Admin clicked'); closeMenus(); }}
                 >
-                  Sign Up
+                  <Shield className="w-4 h-4" />
+                  <span>Admin Panel</span>
                 </Link>
-              </div>
-            )}
+              )}
+              {/* Mobile User Section */}
+              {user ? (
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                  <div className="px-3 py-2">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {user.name}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {user.email}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => { console.log('Mobile Logout clicked'); handleLogout(); }}
+                    className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2 space-y-2">
+                  <Link
+                    to="/login"
+                    className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
+                    onClick={() => { console.log('Mobile Login clicked'); closeMenus(); }}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="block px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors duration-200"
+                    onClick={() => { console.log('Mobile Register clicked'); closeMenus(); }}
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* Backdrop for mobile menu */}
-      {isMobileMenuOpen && (
-        <div 
-          className="fixed left-0 right-0 top-16 bottom-0 bg-black/20 z-30 md:hidden"
-          onClick={closeMenus}
-        />
+        </>, document.body
       )}
 
       {/* Backdrop for user menu */}
