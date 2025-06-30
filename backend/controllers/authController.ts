@@ -113,46 +113,31 @@ export const adminLogin = asyncHandler(
     const { email, password } = req.body;
     console.log(`[ADMIN LOGIN] Attempt for email: ${email}`);
 
-    // Find user
-    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    // Hardcoded admin credentials
+    const hardcodedEmail = 'admin@g.com';
+    const hardcodedPassword = 'Admin@123';
 
-    if (result.rows.length === 0) {
-      console.warn(`[ADMIN LOGIN] No user found for email: ${email}`);
+    if (email !== hardcodedEmail || password !== hardcodedPassword) {
+      console.warn(`[ADMIN LOGIN] Invalid credentials for email: ${email}`);
       return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    const user = result.rows[0];
-    console.log(`[ADMIN LOGIN] Email entered: ${email}, Role from DB: ${user.role}`);
-
-    // Securely compare password
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      console.warn(`[ADMIN LOGIN] Invalid password for email: ${email}`);
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    // Check for admin role (case-insensitive, trimmed)
-    if (!user.role || user.role.toLowerCase().trim() !== 'admin') {
-      console.warn(`[ADMIN LOGIN] User is not admin. Email: ${email}, Role: ${user.role}`);
-      return res.status(401).json({ error: 'Not authorized as admin' });
     }
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
+      { userId: 1, email: hardcodedEmail, role: 'admin' },
       process.env.JWT_SECRET || "your-secret-key",
       { expiresIn: "24h" },
     );
 
-    console.log(`[ADMIN LOGIN] Success for email: ${email} (userId: ${user.id})`);
+    console.log(`[ADMIN LOGIN] Success for hardcoded admin: ${hardcodedEmail}`);
 
     res.status(200).json({
       message: "Admin login successful",
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
+        id: 1,
+        name: 'Hardcoded Admin',
+        email: hardcodedEmail,
+        role: 'admin',
       },
       token,
     });
