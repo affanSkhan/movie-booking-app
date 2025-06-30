@@ -108,44 +108,48 @@ const Navbar: React.FC = () => {
 
             {/* User Menu */}
             {user ? (
-              <div className="relative">
-                <button
-                  onClick={toggleUserMenu}
-                  className="flex items-center space-x-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center">
-                    <span className="text-white font-medium text-sm">
-                      {user.name?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {user.name}
-                  </span>
-                </button>
-
-                {/* User Dropdown */}
-                {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 card shadow-soft-dark animate-fade-in">
-                    <div className="py-1">
-                      <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          {user.name}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {user.email}
-                        </p>
-                      </div>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Logout</span>
-                      </button>
+              <>
+                <div className="relative">
+                  <button
+                    onClick={toggleUserMenu}
+                    className="flex items-center space-x-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center">
+                      <span className="text-white font-medium text-sm">
+                        {user.name?.charAt(0).toUpperCase()}
+                      </span>
                     </div>
-                  </div>
-                )}
-              </div>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {user.name}
+                    </span>
+                  </button>
+
+                  {/* User Dropdown */}
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 card shadow-soft-dark animate-fade-in" style={{ zIndex: 1000, pointerEvents: 'auto' }}>
+                      <div className="py-1">
+                        <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {user.name}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {user.email}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => { console.log('Dropdown Logout clicked'); handleLogout(); }}
+                          className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
+                          style={{ pointerEvents: 'auto', zIndex: 1001 }}
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Logout</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
             ) : (
               <div className="flex items-center space-x-3">
                 <Link

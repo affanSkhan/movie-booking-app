@@ -98,10 +98,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     
-    // Clear axios default authorization header
-    if (typeof window !== 'undefined') {
-      // Force a page reload to clear any cached API calls
-      window.location.href = '/';
+    // If normal user, force a soft reload to ensure all components update
+    if (user && user.role !== 'admin') {
+      window.location.reload();
     }
   };
 

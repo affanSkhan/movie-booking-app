@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContextInstance';
 import { bookingsAPI } from '../services/api';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, MapPin, Ticket, ArrowLeft, RefreshCw, Film, CreditCard } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Calendar, Clock, MapPin, Ticket, RefreshCw, Film, CreditCard } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import Toast from '../components/ui/Toast';
 import type { ToastType } from '../components/ui/Toast';
 
@@ -21,10 +21,17 @@ interface Booking {
 
 const MyBookings: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     if (user) {
