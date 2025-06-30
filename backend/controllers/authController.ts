@@ -135,7 +135,7 @@ export const adminLogin = asyncHandler(
       message: "Admin login successful",
       user: {
         id: 1,
-        name: 'Hardcoded Admin',
+        name: 'Admin User',
         email: hardcodedEmail,
         role: 'admin',
       },
