@@ -111,31 +111,30 @@ export const login = asyncHandler(
 export const adminLogin = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
+    console.log(`[ADMIN LOGIN] Attempt for email: ${email}`);
 
     // Find user
-    const result = await pool.query("SELECT * FROM users WHERE email = $1", [
-      email,
-    ]);
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
 
     if (result.rows.length === 0) {
-      console.log(`[ADMIN LOGIN] Email not found: ${email}`);
-      throw createError("Invalid credentials", 401);
+      console.warn(`[ADMIN LOGIN] No user found for email: ${email}`);
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
 
     const user = result.rows[0];
     console.log(`[ADMIN LOGIN] Email entered: ${email}, Role from DB: ${user.role}`);
 
-    // Check password
+    // Securely compare password
     const isValidPassword = await bcrypt.compare(password, user.password);
-
     if (!isValidPassword) {
-      console.log(`[ADMIN LOGIN] Invalid password for email: ${email}`);
-      throw createError("Invalid credentials", 401);
+      console.warn(`[ADMIN LOGIN] Invalid password for email: ${email}`);
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    if (user.role !== "admin") {
-      console.log(`[ADMIN LOGIN] User is not admin: ${email}, role: ${user.role}`);
-      throw createError("Admin access required", 403);
+    // Check for admin role (case-insensitive, trimmed)
+    if (!user.role || user.role.toLowerCase().trim() !== 'admin') {
+      console.warn(`[ADMIN LOGIN] User is not admin. Email: ${email}, Role: ${user.role}`);
+      return res.status(401).json({ error: 'Not authorized as admin' });
     }
 
     // Generate JWT token
@@ -145,7 +144,9 @@ export const adminLogin = asyncHandler(
       { expiresIn: "24h" },
     );
 
-    res.json({
+    console.log(`[ADMIN LOGIN] Success for email: ${email} (userId: ${user.id})`);
+
+    res.status(200).json({
       message: "Admin login successful",
       user: {
         id: user.id,
