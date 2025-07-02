@@ -113,32 +113,6 @@ export const adminLogin = asyncHandler(
     const { email, password } = req.body;
     console.log(`[ADMIN LOGIN] Attempt for email: ${email}`);
 
-    // Hardcoded admin credentials
-    const hardcodedEmail = 'admin@g.com';
-    const hardcodedPassword = 'Admin@123';
-
-    if (email === hardcodedEmail && password === hardcodedPassword) {
-      // Generate JWT token for hardcoded admin
-      const token = jwt.sign(
-        { userId: 1, email: hardcodedEmail, role: 'admin' },
-        process.env.JWT_SECRET || "your-secret-key",
-        { expiresIn: "24h" },
-      );
-
-      console.log(`[ADMIN LOGIN] Success for hardcoded admin: ${hardcodedEmail}`);
-
-      return res.status(200).json({
-        message: "Admin login successful (hardcoded)",
-        user: {
-          id: 1,
-          name: 'Admin User',
-          email: hardcodedEmail,
-          role: 'admin',
-        },
-        token,
-      });
-    }
-
     // Check for admin in database
     const result = await pool.query("SELECT * FROM users WHERE email = $1 AND role = 'admin'", [email]);
     if (result.rows.length === 0) {
