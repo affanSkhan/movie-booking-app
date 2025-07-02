@@ -117,27 +117,55 @@ export const adminLogin = asyncHandler(
     const hardcodedEmail = 'admin@g.com';
     const hardcodedPassword = 'Admin@123';
 
-    if (email !== hardcodedEmail || password !== hardcodedPassword) {
-      console.warn(`[ADMIN LOGIN] Invalid credentials for email: ${email}`);
-      return res.status(401).json({ error: 'Invalid email or password' });
+    if (email === hardcodedEmail && password === hardcodedPassword) {
+      // Generate JWT token for hardcoded admin
+      const token = jwt.sign(
+        { userId: 1, email: hardcodedEmail, role: 'admin' },
+        process.env.JWT_SECRET || "your-secret-key",
+        { expiresIn: "24h" },
+      );
+
+      console.log(`[ADMIN LOGIN] Success for hardcoded admin: ${hardcodedEmail}`);
+
+      return res.status(200).json({
+        message: "Admin login successful (hardcoded)",
+        user: {
+          id: 1,
+          name: 'Admin User',
+          email: hardcodedEmail,
+          role: 'admin',
+        },
+        token,
+      });
     }
 
-    // Generate JWT token
+    // Check for admin in database
+    const result = await pool.query("SELECT * FROM users WHERE email = $1 AND role = 'admin'", [email]);
+    if (result.rows.length === 0) {
+      console.warn(`[ADMIN LOGIN] No admin found in database for email: ${email}`);
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    const user = result.rows[0];
+    // Check password
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      console.warn(`[ADMIN LOGIN] Invalid password for admin email: ${email}`);
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    // Generate JWT token for database admin
     const token = jwt.sign(
-      { userId: 1, email: hardcodedEmail, role: 'admin' },
+      { userId: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || "your-secret-key",
       { expiresIn: "24h" },
     );
-
-    console.log(`[ADMIN LOGIN] Success for hardcoded admin: ${hardcodedEmail}`);
-
+    console.log(`[ADMIN LOGIN] Success for database admin: ${user.email}`);
     res.status(200).json({
-      message: "Admin login successful",
+      message: "Admin login successful (database)",
       user: {
-        id: 1,
-        name: 'Admin User',
-        email: hardcodedEmail,
-        role: 'admin',
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
       },
       token,
     });
