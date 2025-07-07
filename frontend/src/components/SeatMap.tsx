@@ -225,15 +225,12 @@ const SeatMap: React.FC<SeatMapProps> = ({
 
   const isSeatClickable = (seat: Seat) => {
     const status = getSeatStatus(seat);
-    
     if (status === 'available') {
       return true;
     }
-    
     if (status === 'locked') {
-      return isSeatLockedByCurrentUser(seat);
+      return isSeatLockedByCurrentUser(seat); // allow current user to always click
     }
-    
     return false;
   };
 
@@ -316,26 +313,25 @@ const SeatMap: React.FC<SeatMapProps> = ({
               .sort((a, b) => a.col_number - b.col_number)
               .map((seat) => {
                 const status = getSeatStatus(seat);
-                const isClickable = isSeatClickable(seat);
                 const tooltip = getSeatTooltip(seat);
                 
                 return (
                   <button
                     key={seat.id}
                     onClick={() => handleSeatClick(seat)}
-                    disabled={!isClickable || processingSeats.has(seat.seat_number)}
+                    disabled={status === 'booked' || (status === 'locked' && !isSeatLockedByCurrentUser(seat))}
                     title={tooltip}
                     className={`
                       w-8 h-8 rounded text-xs font-medium transition-colors duration-200
                       ${getSeatColor(status, seat)}
                       ${getSeatText(status)}
-                      ${isClickable && !processingSeats.has(seat.seat_number) ? 'cursor-pointer' : 'cursor-not-allowed'}
-                      ${isClickable && !processingSeats.has(seat.seat_number) ? 'hover:scale-105' : ''}
+                      ${isSeatClickable(seat) ? 'cursor-pointer' : 'cursor-not-allowed'}
+                      ${isSeatClickable(seat) ? 'hover:scale-105' : ''}
                       ${processingSeats.has(seat.seat_number) ? 'animate-pulse opacity-75' : ''}
                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800
                     `}
                   >
-                    {processingSeats.has(seat.seat_number) ? '⏳' : seat.col_number}
+                    {seat.col_number}
                   </button>
                 );
               })}
