@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Always ensure /api is included in the base URL
-const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/api';
+// Always ensure /api is included in the base URL, even if VITE_API_URL does not end with /api
+const API_BASE_URL = ((import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/?$/, '')) + '/api';
 
 console.log('API Base URL:', API_BASE_URL); // Debug log
 

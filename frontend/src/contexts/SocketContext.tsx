@@ -25,7 +25,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
   useEffect(() => {
     if (user) {
-      const newSocket = io((import.meta.env.VITE_API_URL || 'http://localhost:3001').replace('/api', ''), {
+      const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:3001', {
         auth: {
           token: localStorage.getItem('token'),
         },
