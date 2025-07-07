@@ -14,9 +14,8 @@ const server = createServer(app);
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
-  "https://movie-booking-frontend.netlify.app",
-  "https://movie-booking-pf.netlify.app",
-  process.env.FRONTEND_URL,
+  // Add your actual Netlify site URL below (update this in production!)
+  process.env.FRONTEND_URL, // e.g. https://your-netlify-site.netlify.app
 ].filter(Boolean);
 
 const io = new Server(server, {
@@ -25,6 +24,7 @@ const io = new Server(server, {
       if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.netlify.app')) {
         callback(null, true);
       } else {
+        console.warn(`CORS: Origin not allowed: ${origin}`);
         callback(new Error("Not allowed by CORS"));
       }
     },
@@ -52,6 +52,7 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.netlify.app')) {
       return callback(null, true);
     } else {
+      console.warn(`CORS: Origin not allowed: ${origin}`);
       return callback(new Error("Not allowed by CORS"));
     }
   },
