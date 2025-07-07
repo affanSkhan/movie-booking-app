@@ -20,6 +20,8 @@ interface SeatMapProps {
   onSeatDeselect: (seatNumber: string) => void;
   selectedSeats: string[];
   hideLegend?: boolean;
+  refreshTrigger?: number;
+  onRefreshRequested?: () => void;
 }
 
 const SeatMap: React.FC<SeatMapProps> = ({
@@ -29,6 +31,8 @@ const SeatMap: React.FC<SeatMapProps> = ({
   onSeatDeselect,
   selectedSeats,
   hideLegend = false,
+  refreshTrigger = 0,
+  onRefreshRequested,
 }) => {
   const { socket, joinShow, leaveShow, lockSeat, unlockSeat, isConnected } = useSocket();
   const { user } = useAuth();
@@ -136,6 +140,25 @@ const SeatMap: React.FC<SeatMapProps> = ({
       window.removeEventListener('seat:unlock:error', handleSeatUnlockError as EventListener);
     };
   }, [socket, seatUpdates]);
+
+  // Listen for socket reconnect and request seat map refresh
+  useEffect(() => {
+    if (!socket) return;
+    const handleReconnect = () => {
+      console.log('🔄 Socket reconnected, requesting seat map refresh');
+      setSeatUpdates(new Map()); // clear real-time updates
+      if (onRefreshRequested) onRefreshRequested();
+    };
+    socket.on('connect', handleReconnect);
+    return () => {
+      socket.off('connect', handleReconnect);
+    };
+  }, [socket, onRefreshRequested]);
+
+  // Also refresh if parent triggers via refreshTrigger prop
+  useEffect(() => {
+    setSeatUpdates(new Map());
+  }, [refreshTrigger]);
 
   const handleSeatClick = (seat: Seat) => {
     if (!user) return;

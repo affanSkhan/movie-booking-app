@@ -48,6 +48,7 @@ const BookShow: React.FC = () => {
   const selectionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [selectionTimeLeft, setSelectionTimeLeft] = useState<number | null>(null);
   const { unlockSeat } = useSocket();
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // for SeatMap refresh
 
   // Fetch show, movie, and seats data
   useEffect(() => {
@@ -174,6 +175,21 @@ const BookShow: React.FC = () => {
         paymentStart: Date.now()
       }
     });
+  };
+
+  // Add a function to reload seats from backend
+  const reloadSeats = async () => {
+    if (!showId) return;
+    try {
+      setLoading(true);
+      const seatsResponse = await seatsAPI.getByShow(showId);
+      setSeats(seatsResponse.data);
+      setRefreshTrigger((t) => t + 1); // force SeatMap to clear real-time updates
+    } catch {
+      setError('Failed to reload seats. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -333,6 +349,8 @@ const BookShow: React.FC = () => {
                   selectedSeats={selectedSeats}
                   onSeatSelect={handleSeatSelect}
                   onSeatDeselect={handleSeatDeselect}
+                  refreshTrigger={refreshTrigger}
+                  onRefreshRequested={reloadSeats}
                 />
               </div>
             </motion.div>
