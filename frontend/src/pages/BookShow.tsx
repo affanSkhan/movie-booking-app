@@ -215,12 +215,12 @@ const BookShow: React.FC = () => {
             <div className="flex-shrink-0">
               <div className="relative">
                 <img
-                  src={movie.poster_url || 'https://via.placeholder.com/80x120/1f2937/ffffff?text=No+Poster'}
+                  src={movie.poster_url || 'https://www.reelviews.net/resources/img/default_poster.jpg'}
                   alt={movie.title}
                   className="w-20 h-30 object-cover rounded-xl shadow-lg border border-primary-foreground/20"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = 'https://via.placeholder.com/80x120/1f2937/ffffff?text=No+Poster';
+                    target.src = 'https://www.reelviews.net/resources/img/default_poster.jpg';
                   }}
                 />
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-black/20 to-transparent"></div>
