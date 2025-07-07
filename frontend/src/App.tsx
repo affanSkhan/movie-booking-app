@@ -11,7 +11,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Movies from './pages/Movies';
 import Showtimes from './pages/Showtimes';
-import MovieDetails from './pages/MovieDetails';
+// import MovieDetails from './pages/MovieDetails';
 // import ShowBooking from './pages/ShowBooking';
 import Payment from './pages/Payment';
 import BookingSuccess from './pages/BookingSuccess';
@@ -111,7 +111,6 @@ const AppRoutes: React.FC = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
-          <Route path="/movie/:id" element={<MovieDetails />} />
           
           {/* Protected Routes */}
           <Route 

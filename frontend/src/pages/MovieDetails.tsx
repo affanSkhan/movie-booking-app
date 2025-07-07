@@ -1,3 +1,5 @@
+// This file is unused. The /movie/:id route and MovieDetails component are commented out in App.tsx. Use Movies and Showtimes instead.
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { moviesAPI, showsAPI } from '../services/api';
