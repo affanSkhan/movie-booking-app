@@ -298,6 +298,8 @@ const SeatMap: React.FC<SeatMapProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* DEPLOY TEST - REMOVE AFTER VERIFICATION */}
+      <div className="text-center text-lg font-bold text-red-600">DEPLOY TEST</div>
       {/* Screen */}
       <div className="text-center">
         <div className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg inline-block border border-gray-400 dark:border-gray-500">
