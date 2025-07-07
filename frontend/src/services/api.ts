@@ -100,4 +100,4 @@ export const paymentAPI = {
     api.post('/payment/verify', data),
 };
 
-export default api; 
+export default api;
