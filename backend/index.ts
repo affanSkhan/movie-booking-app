@@ -5,6 +5,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { Pool } from "pg";
 import { seatLockingService } from "./services/seatLockingService";
+import { verifyJWT } from "./utils/generateJWT";
 
 // Load environment variables
 dotenv.config();
@@ -85,15 +86,22 @@ app.get("/api/health", (req, res) => {
 
 // Socket.IO connection handling
 io.on("connection", (socket) => {
-  console.log("🔌 User connected:", socket.id);
-
-  // Store user info in socket
-  socket.on("authenticate", (userData: { userId: number; email: string }) => {
-    socket.data.user = userData;
-    console.log(
-      `👤 User ${userData.email} (ID: ${userData.userId}) authenticated on socket ${socket.id}`,
-    );
-  });
+  // JWT authentication in handshake
+  const token = socket.handshake.auth?.token;
+  if (!token) {
+    socket.emit("error", "Authentication token required");
+    socket.disconnect();
+    return;
+  }
+  try {
+    const user = verifyJWT(token);
+    socket.data.user = user;
+    console.log(`👤 User ${user.email} (ID: ${user.userId}) authenticated on socket ${socket.id}`);
+  } catch (err) {
+    socket.emit("error", "Invalid or expired token");
+    socket.disconnect();
+    return;
+  }
 
   // Join a show room
   socket.on("join-show", (showId: string) => {
@@ -111,50 +119,46 @@ io.on("connection", (socket) => {
   socket.on(
     "seat:lock",
     async (data: { seatId: number; seatNumber: string; showId: string }) => {
-      try {
-        const user = socket.data.user;
-        if (!user) {
-          socket.emit("error", "User not authenticated");
-          return;
-        }
+      const user = socket.data.user;
+      if (!user) {
+        socket.emit("error", "User not authenticated");
+        socket.disconnect();
+        return;
+      }
 
-        console.log(
-          `🔒 Seat lock request: ${data.seatNumber} by user ${user.userId} in show ${data.showId}`,
-        );
+      console.log(
+        `🔒 Seat lock request: ${data.seatNumber} by user ${user.userId} in show ${data.showId}`,
+      );
 
-        const result = await seatLockingService.lockSeat({
-          seatId: data.seatId,
+      const result = await seatLockingService.lockSeat({
+        seatId: data.seatId,
+        seatNumber: data.seatNumber,
+        showId: data.showId,
+        userId: user.userId,
+        socketId: socket.id,
+      });
+
+      if (result.success) {
+        // Send success response to the locking user
+        socket.emit("seat:lock:success", {
           seatNumber: data.seatNumber,
-          showId: data.showId,
-          userId: user.userId,
-          socketId: socket.id,
+          status: "locked",
+          lockExpiresAt: result.seat?.lock_expires_at,
         });
 
-        if (result.success) {
-          // Send success response to the locking user
-          socket.emit("seat:lock:success", {
-            seatNumber: data.seatNumber,
-            status: "locked",
-            lockExpiresAt: result.seat?.lock_expires_at,
-          });
+        console.log(
+          `✅ Seat ${data.seatNumber} locked successfully for user ${user.userId}`,
+        );
+      } else {
+        // Send error response to the locking user
+        socket.emit("seat:lock:error", {
+          seatNumber: data.seatNumber,
+          message: result.message,
+        });
 
-          console.log(
-            `✅ Seat ${data.seatNumber} locked successfully for user ${user.userId}`,
-          );
-        } else {
-          // Send error response to the locking user
-          socket.emit("seat:lock:error", {
-            seatNumber: data.seatNumber,
-            message: result.message,
-          });
-
-          console.log(
-            `❌ Failed to lock seat ${data.seatNumber}: ${result.message}`,
-          );
-        }
-      } catch (error) {
-        console.error("❌ Error in seat:lock:", error);
-        socket.emit("error", "Failed to lock seat");
+        console.log(
+          `❌ Failed to lock seat ${data.seatNumber}: ${result.message}`,
+        );
       }
     },
   );
@@ -163,48 +167,44 @@ io.on("connection", (socket) => {
   socket.on(
     "seat:unlock",
     async (data: { seatNumber: string; showId: string }) => {
-      try {
-        const user = socket.data.user;
-        if (!user) {
-          socket.emit("error", "User not authenticated");
-          return;
-        }
+      const user = socket.data.user;
+      if (!user) {
+        socket.emit("error", "User not authenticated");
+        socket.disconnect();
+        return;
+      }
+
+      console.log(
+        `🔓 Seat unlock request: ${data.seatNumber} by user ${user.userId} in show ${data.showId}`,
+      );
+
+      const result = await seatLockingService.unlockSeat(
+        data.seatNumber,
+        data.showId,
+        user.userId,
+        socket.id,
+      );
+
+      if (result.success) {
+        // Send success response to the unlocking user
+        socket.emit("seat:unlock:success", {
+          seatNumber: data.seatNumber,
+          status: "available",
+        });
 
         console.log(
-          `🔓 Seat unlock request: ${data.seatNumber} by user ${user.userId} in show ${data.showId}`,
+          `✅ Seat ${data.seatNumber} unlocked successfully by user ${user.userId}`,
         );
+      } else {
+        // Send error response to the unlocking user
+        socket.emit("seat:unlock:error", {
+          seatNumber: data.seatNumber,
+          message: result.message,
+        });
 
-        const result = await seatLockingService.unlockSeat(
-          data.seatNumber,
-          data.showId,
-          user.userId,
-          socket.id,
+        console.log(
+          `❌ Failed to unlock seat ${data.seatNumber}: ${result.message}`,
         );
-
-        if (result.success) {
-          // Send success response to the unlocking user
-          socket.emit("seat:unlock:success", {
-            seatNumber: data.seatNumber,
-            status: "available",
-          });
-
-          console.log(
-            `✅ Seat ${data.seatNumber} unlocked successfully by user ${user.userId}`,
-          );
-        } else {
-          // Send error response to the unlocking user
-          socket.emit("seat:unlock:error", {
-            seatNumber: data.seatNumber,
-            message: result.message,
-          });
-
-          console.log(
-            `❌ Failed to unlock seat ${data.seatNumber}: ${result.message}`,
-          );
-        }
-      } catch (error) {
-        console.error("❌ Error in seat:unlock:", error);
-        socket.emit("error", "Failed to unlock seat");
       }
     },
   );
