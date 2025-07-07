@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Clock, MapPin, Calendar, Shield, CreditCard } from 'lucide-react';
+import { Clock, MapPin, Calendar, Shield, CreditCard } from 'lucide-react';
 import PaymentForm from '../components/PaymentForm';
 import Toast from '../components/ui/Toast';
 import type { ToastType } from '../components/ui/Toast';

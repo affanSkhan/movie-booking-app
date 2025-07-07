@@ -12,13 +12,13 @@ import ResetPassword from './pages/ResetPassword';
 import Movies from './pages/Movies';
 import Showtimes from './pages/Showtimes';
 // import MovieDetails from './pages/MovieDetails';
-// import ShowBooking from './pages/ShowBooking';
+import ShowBooking from './pages/ShowBooking';
 import Payment from './pages/Payment';
 import BookingSuccess from './pages/BookingSuccess';
 import MyBookings from './pages/MyBookings';
 import AdminLogin from './pages/AdminLogin';
 import AdminPanel from './pages/AdminPanel';
-import BookShow from './pages/BookShow';
+// import BookShow from './pages/BookShow';
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode; requireAuth?: boolean; requireAdmin?: boolean }> = ({ 
@@ -138,10 +138,10 @@ const AppRoutes: React.FC = () => {
             } 
           />
           <Route 
-            path="/book/:showId" 
+            path="/booking/:showId" 
             element={
               <ProtectedRoute requireAuth>
-                <BookShow />
+                <ShowBooking />
               </ProtectedRoute>
             } 
           />

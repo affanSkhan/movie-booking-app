@@ -466,7 +466,7 @@ const Showtimes: React.FC = () => {
                               whileHover={{ scale: 1.02 }}
                               whileTap={{ scale: 0.98 }}
                               disabled={show.status === 'sold-out'}
-                              onClick={() => navigate(`/book/${show.id}`)}
+                              onClick={() => navigate(`/booking/${show.id}`)}
                               className={`w-full py-3 px-4 rounded-xl font-medium transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-offset-background ${
                                 show.status === 'sold-out'
                                   ? 'bg-muted text-muted-foreground cursor-not-allowed focus:ring-muted'
