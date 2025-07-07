@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Clock, MapPin, Calendar, Shield, CreditCard } from 'lucide-react';
@@ -36,9 +36,12 @@ const Payment: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [paymentTimeLeft, setPaymentTimeLeft] = useState<number>(600); // 10 minutes in seconds
+  const [expired, setExpired] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   
   // Get payment data from navigation state
-  const paymentData = location.state as PaymentState;
+  const paymentData = location.state as PaymentState & { paymentStart?: number };
 
   useEffect(() => {
     // Redirect if no payment data
@@ -47,7 +50,33 @@ const Payment: React.FC = () => {
       setTimeout(() => {
         navigate('/movies');
       }, 2000);
+      return;
     }
+    // Calculate time left if paymentStart is provided
+    let initialTime = 600;
+    if (paymentData.paymentStart) {
+      const elapsed = Math.floor((Date.now() - paymentData.paymentStart) / 1000);
+      initialTime = Math.max(600 - elapsed, 0);
+    }
+    setPaymentTimeLeft(initialTime);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setPaymentTimeLeft(t => {
+        if (t <= 1) {
+          clearInterval(timerRef.current!);
+          setExpired(true);
+          setToast({ message: 'Your selected seats have expired.', type: 'error' });
+          // TODO: Call unlock API or socket event to unlock seats for others
+          // Optionally, redirect after a delay
+          setTimeout(() => navigate('/movies'), 3000);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [paymentData, navigate]);
 
   // Format show time
@@ -136,13 +165,16 @@ const Payment: React.FC = () => {
               </div>
               <p className="text-sm text-muted-foreground">Secure payment powered by Razorpay</p>
             </motion.div>
-
-            {/* Placeholder for balance */}
             <div className="w-20"></div>
           </div>
         </div>
       </header>
-
+      {/* Payment Timer */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <div className="flex justify-center">
+          <div className={`text-lg font-bold ${paymentTimeLeft <= 60 ? 'text-destructive' : 'text-primary'}`}>Time left: {Math.floor(paymentTimeLeft/60).toString().padStart(2,'0')}:{(paymentTimeLeft%60).toString().padStart(2,'0')}</div>
+        </div>
+      </div>
       {/* Enhanced Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -286,7 +318,11 @@ const Payment: React.FC = () => {
                 showId={paymentData.showId}
                 onPaymentSuccess={handlePaymentSuccess}
                 onPaymentFailure={handlePaymentFailure}
+                disabled={expired}
               />
+              {expired && (
+                <div className="mt-4 text-center text-destructive font-semibold">Your selected seats have expired.</div>
+              )}
             </motion.div>
           </div>
         </div>

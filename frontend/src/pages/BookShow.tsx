@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { moviesAPI, showsAPI, seatsAPI } from '../services/api';
@@ -6,6 +6,7 @@ import { Clock, Calendar, MapPin, CreditCard, X, Sparkles, ArrowLeft } from 'luc
 import SeatMap from '../components/SeatMap';
 import Toast from '../components/ui/Toast';
 import type { ToastType } from '../components/ui/Toast';
+import { useSocket } from '../contexts/SocketContextInstance';
 
 interface Movie {
   id: number;
@@ -44,6 +45,9 @@ const BookShow: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [seatPrice] = useState(250); // ₹250 per seat
+  const selectionTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [selectionTimeLeft, setSelectionTimeLeft] = useState<number | null>(null);
+  const { unlockSeat } = useSocket();
 
   // Fetch show, movie, and seats data
   useEffect(() => {
@@ -81,6 +85,31 @@ const BookShow: React.FC = () => {
       if (prev.includes(seatNumber)) {
         return prev.filter(seat => seat !== seatNumber);
       } else {
+        if (prev.length >= 5) {
+          setToast({ message: 'You can select a maximum of 5 seats', type: 'error' });
+          return prev;
+        }
+        // Start 1-minute timer on first selection
+        if (prev.length === 0) {
+          setSelectionTimeLeft(60);
+          if (selectionTimerRef.current) clearInterval(selectionTimerRef.current);
+          selectionTimerRef.current = setInterval(() => {
+            setSelectionTimeLeft(t => {
+              if (t === null) return null;
+              if (t <= 1) {
+                clearInterval(selectionTimerRef.current!);
+                // Unlock all selected seats for other users
+                selectedSeats.forEach(seatNumber => {
+                  unlockSeat(seatNumber, showId!);
+                });
+                setSelectedSeats([]);
+                setToast({ message: 'Seat selection timed out. Please select again.', type: 'error' });
+                return null;
+              }
+              return t - 1;
+            });
+          }, 1000);
+        }
         return [...prev, seatNumber];
       }
     });
@@ -88,8 +117,22 @@ const BookShow: React.FC = () => {
 
   // Handle seat deselection
   const handleSeatDeselect = (seatNumber: string) => {
-    setSelectedSeats(prev => prev.filter(seat => seat !== seatNumber));
+    setSelectedSeats(prev => {
+      const updated = prev.filter(seat => seat !== seatNumber);
+      if (updated.length === 0 && selectionTimerRef.current) {
+        clearInterval(selectionTimerRef.current);
+        setSelectionTimeLeft(null);
+      }
+      return updated;
+    });
   };
+
+  // Clear timer on proceed to payment or unmount
+  useEffect(() => {
+    return () => {
+      if (selectionTimerRef.current) clearInterval(selectionTimerRef.current);
+    };
+  }, []);
 
   // Calculate total price
   const totalPrice = selectedSeats.length * seatPrice;
@@ -117,8 +160,9 @@ const BookShow: React.FC = () => {
       setToast({ message: 'Please select at least one seat', type: 'error' });
       return;
     }
-    
-    // Navigate to payment with selected seats data
+    if (selectionTimerRef.current) clearInterval(selectionTimerRef.current);
+    setSelectionTimeLeft(null);
+    // Pass timestamp for payment window
     navigate('/payment', {
       state: {
         showId,
@@ -126,7 +170,8 @@ const BookShow: React.FC = () => {
         show,
         selectedSeats,
         totalPrice,
-        seatPrice
+        seatPrice,
+        paymentStart: Date.now()
       }
     });
   };
@@ -272,6 +317,9 @@ const BookShow: React.FC = () => {
                     <Sparkles className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-xl sm:text-2xl font-semibold text-foreground">Select Your Seats</h3>
+                  {selectionTimeLeft !== null && (
+                    <span className="ml-4 text-sm text-destructive font-semibold">{selectionTimeLeft}s left</span>
+                  )}
                 </div>
                 <div className="text-sm text-muted-foreground bg-muted/50 px-4 py-2 rounded-full text-center">
                   {selectedSeats.length} seat{selectedSeats.length !== 1 ? 's' : ''} selected

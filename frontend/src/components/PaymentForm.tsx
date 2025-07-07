@@ -8,6 +8,7 @@ interface PaymentFormProps {
   showId: string;
   onPaymentSuccess: (paymentId: string, orderId: string) => void;
   onPaymentFailure: () => void;
+  disabled?: boolean;
 }
 
 const PaymentForm: React.FC<PaymentFormProps> = ({
@@ -16,6 +17,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   showId,
   onPaymentSuccess,
   onPaymentFailure,
+  disabled,
 }) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -165,7 +167,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
 
         <button
           onClick={handlePayment}
-          disabled={loading || selectedSeats.length === 0}
+          disabled={loading || selectedSeats.length === 0 || disabled}
           className="w-full bg-blue-600 dark:bg-blue-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? 'Processing...' : 'Proceed to Payment'}

@@ -139,27 +139,19 @@ const SeatMap: React.FC<SeatMapProps> = ({
 
   const handleSeatClick = (seat: Seat) => {
     if (!user) return;
-
-    console.log('🪑 Seat clicked:', seat);
-
     const currentStatus = getSeatStatus(seat);
-    
     if (currentStatus === 'available') {
-      // Lock the seat
-      console.log('🔒 Locking seat:', seat.seat_number);
-      setProcessingSeats(prev => new Set(prev).add(seat.seat_number));
+      // Only lock if not at max
+      if (selectedSeats.length >= 5) return;
       lockSeat(seat.id, seat.seat_number, showId);
       onSeatSelect(seat.seat_number);
     } else if (currentStatus === 'locked') {
       if (isSeatLockedByCurrentUser(seat)) {
-        // Unlock the seat (only if locked by current user)
-        console.log('🔓 Unlocking seat:', seat.seat_number);
-        setProcessingSeats(prev => new Set(prev).add(seat.seat_number));
         unlockSeat(seat.seat_number, showId);
         onSeatDeselect(seat.seat_number);
       }
     }
-    // If seat is locked by others or booked, do nothing (not clickable)
+    // If seat is locked by others or booked, do nothing
   };
 
   const getSeatStatus = (seat: Seat) => {
