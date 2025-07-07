@@ -12,7 +12,7 @@ import ResetPassword from './pages/ResetPassword';
 import Movies from './pages/Movies';
 import Showtimes from './pages/Showtimes';
 import MovieDetails from './pages/MovieDetails';
-import ShowBooking from './pages/ShowBooking';
+// import ShowBooking from './pages/ShowBooking';
 import Payment from './pages/Payment';
 import BookingSuccess from './pages/BookingSuccess';
 import MyBookings from './pages/MyBookings';
@@ -114,14 +114,6 @@ const AppRoutes: React.FC = () => {
           <Route path="/movie/:id" element={<MovieDetails />} />
           
           {/* Protected Routes */}
-          <Route 
-            path="/booking/:showId" 
-            element={
-              <ProtectedRoute requireAuth>
-                <ShowBooking />
-              </ProtectedRoute>
-            } 
-          />
           <Route 
             path="/my-bookings" 
             element={

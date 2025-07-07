@@ -1,3 +1,6 @@
+// This file is unused. The /booking/:showId route and ShowBooking component are commented out in App.tsx. Use /book/:showId and BookShow instead.
+
+/*
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContextInstance';
@@ -326,4 +329,5 @@ const ShowBooking: React.FC = () => {
   );
 };
 
-export default ShowBooking; 
+export default ShowBooking;
+*/ 
