@@ -13,12 +13,12 @@ import Movies from './pages/Movies';
 import Showtimes from './pages/Showtimes';
 import MovieDetails from './pages/MovieDetails';
 import ShowBooking from './pages/ShowBooking';
-import BookShow from './pages/BookShow';
 import Payment from './pages/Payment';
 import BookingSuccess from './pages/BookingSuccess';
 import MyBookings from './pages/MyBookings';
 import AdminLogin from './pages/AdminLogin';
 import AdminPanel from './pages/AdminPanel';
+import BookShow from './pages/BookShow';
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode; requireAuth?: boolean; requireAdmin?: boolean }> = ({ 
@@ -123,14 +123,6 @@ const AppRoutes: React.FC = () => {
             } 
           />
           <Route 
-            path="/book/:showId" 
-            element={
-              <ProtectedRoute requireAuth>
-                <BookShow />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
             path="/my-bookings" 
             element={
               <ProtectedRoute requireAuth>
@@ -151,6 +143,14 @@ const AppRoutes: React.FC = () => {
             element={
               <ProtectedRoute requireAuth>
                 <BookingSuccess />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/book/:showId" 
+            element={
+              <ProtectedRoute requireAuth>
+                <BookShow />
               </ProtectedRoute>
             } 
           />
@@ -178,7 +178,7 @@ const AppRoutes: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  // 🕒 Keeps the Render backend awake by pinging it every 5 minutes
+  //  Keeps the Render backend awake by pinging it every 5 minutes
   useEffect(() => {
     const backendUrl = import.meta.env.VITE_API_URL || 'https://your-backend.onrender.com';
     const interval = setInterval(() => {

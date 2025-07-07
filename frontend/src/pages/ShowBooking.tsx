@@ -70,7 +70,7 @@ const ShowBooking: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      console.log('🎬 Loading show and seats for show ID:', showId);
+      console.log('Loading show and seats for show ID:', showId);
 
       const [showResponse, seatsResponse] = await Promise.all([
         showsAPI.getById(showId!),
@@ -93,13 +93,13 @@ const ShowBooking: React.FC = () => {
         });
       }
 
-      console.log('✅ Show and seats loaded:', {
+      console.log('Show and seats loaded:', {
         show: showResponse.data,
         seatsCount: seatsResponse.data.length
       });
 
     } catch (err) {
-      console.error('❌ Error loading show and seats:', err);
+      console.error('Error loading show and seats:', err);
       const error = err as { response?: { status?: number; data?: { message?: string } } };
       const errorMessage = error.response?.data?.message || 
         `Failed to load show details. Status: ${error.response?.status || 'Unknown'}`;
@@ -110,17 +110,17 @@ const ShowBooking: React.FC = () => {
   };
 
   const handleSeatSelect = (seatNumber: string) => {
-    console.log('🪑 Seat selected:', seatNumber);
+    console.log('Seat selected:', seatNumber);
     setSelectedSeats(prev => [...prev, seatNumber]);
   };
 
   const handleSeatDeselect = (seatNumber: string) => {
-    console.log('🪑 Seat deselected:', seatNumber);
+    console.log('Seat deselected:', seatNumber);
     setSelectedSeats(prev => prev.filter(seat => seat !== seatNumber));
   };
 
   const handlePaymentSuccess = (paymentId: string, orderId: string) => {
-    console.log('✅ Payment successful:', { paymentId, orderId });
+    console.log('Payment successful:', { paymentId, orderId });
     setPaymentId(paymentId);
     setOrderId(orderId);
     setBookingSuccess(true);
@@ -135,7 +135,7 @@ const ShowBooking: React.FC = () => {
   };
 
   const handlePaymentFailure = () => {
-    console.log('❌ Payment failed');
+    console.log('Payment failed');
     // Clear selected seats
     setSelectedSeats([]);
     

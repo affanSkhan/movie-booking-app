@@ -277,8 +277,7 @@ const BookShow: React.FC = () => {
                   {selectedSeats.length} seat{selectedSeats.length !== 1 ? 's' : ''} selected
                 </div>
               </div>
-
-              {/* Seat Map Component */}
+              {/* Seat Map Component (from ShowBooking) */}
               <div className="overflow-x-auto pb-2">
                 <SeatMap
                   showId={showId!}

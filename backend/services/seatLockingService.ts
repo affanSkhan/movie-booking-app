@@ -36,7 +36,7 @@ class SeatLockingService {
     const { seatId, seatNumber, showId, userId, socketId } = data;
 
     console.log(
-      `🔒 Attempting to lock seat ${seatNumber} for user ${userId} in show ${showId}`,
+      `Attempting to lock seat ${seatNumber} for user ${userId} in show ${showId}`,
     );
 
     try {
@@ -118,7 +118,7 @@ class SeatLockingService {
 
         const lockedSeat = result.rows[0];
         console.log(
-          `✅ Successfully locked seat ${seatNumber} for user ${userId}`,
+          `Successfully locked seat ${seatNumber} for user ${userId}`,
         );
 
         // Broadcast to all users in the show room
@@ -185,7 +185,7 @@ class SeatLockingService {
       this.clearLockTimeout(seatNumber, showId, userId);
 
       console.log(
-        `✅ Successfully unlocked seat ${seatNumber} for user ${userId}`,
+        `Successfully unlocked seat ${seatNumber} for user ${userId}`,
       );
 
       // Broadcast to all users in the show room
@@ -206,7 +206,7 @@ class SeatLockingService {
    * Handle user disconnection - unlock all their seats
    */
   async handleUserDisconnect(socketId: string): Promise<void> {
-    console.log(`🔌 User disconnected: ${socketId}`);
+    console.log(`User disconnected: ${socketId}`);
 
     const userSeats = this.userSeatMapping[socketId];
     if (!userSeats) return;

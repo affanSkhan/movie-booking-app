@@ -48,7 +48,7 @@ router.post(
       // Create Razorpay order
       const order = await createRazorpayOrder(amount, "INR");
 
-      console.log("✅ Order created successfully:", order.id);
+      console.log("Order created successfully:", order.id);
 
       // Return the order details needed for Razorpay checkout
       res.status(200).json({
@@ -58,7 +58,7 @@ router.post(
         currency: order.currency,
       });
     } catch (error) {
-      console.error("❌ Failed to initialize payment:", error);
+      console.error("Failed to initialize payment:", error);
       throw createError("Failed to initialize payment", 500);
     }
   }),
