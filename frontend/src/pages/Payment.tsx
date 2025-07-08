@@ -44,6 +44,9 @@ const Payment: React.FC = () => {
   // Get payment data from navigation state
   const paymentData = location.state as PaymentState & { paymentStart?: number };
 
+  // Always use 250 for seat price
+  const seatPrice = 250;
+
   useEffect(() => {
     // Redirect if no payment data
     if (!paymentData) {
@@ -178,10 +181,12 @@ const Payment: React.FC = () => {
           </div>
         </div>
       </header>
-      {/* Payment Timer */}
+      {/* Payment Timer - move above booking summary and style as sticky if time is low */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <div className="flex justify-center">
-          <div className={`text-lg font-bold ${paymentTimeLeft <= 60 ? 'text-destructive' : 'text-primary'}`}>Time left: {Math.floor(paymentTimeLeft/60).toString().padStart(2,'0')}:{(paymentTimeLeft%60).toString().padStart(2,'0')}</div>
+          <div className={`text-lg font-bold rounded-xl px-4 py-2 shadow-md bg-white dark:bg-gray-900 border border-border/50 ${paymentTimeLeft <= 60 ? 'text-destructive bg-yellow-100 dark:bg-yellow-900/40 border-yellow-400 animate-pulse sticky top-0 z-20' : 'text-primary'}`}>
+            Time left to complete payment: {Math.floor(paymentTimeLeft/60).toString().padStart(2,'0')}:{(paymentTimeLeft%60).toString().padStart(2,'0')}
+          </div>
         </div>
       </div>
       {/* Enhanced Main Content */}
@@ -232,7 +237,7 @@ const Payment: React.FC = () => {
                       </div>
                     </div>
 
-                    {paymentData.movie.duration && (
+                    {paymentData.movie.duration != null && (
                       <p className="text-sm text-primary-foreground/80">
                         Duration: {Math.floor(paymentData.movie.duration / 60)}h {paymentData.movie.duration % 60}m
                       </p>
@@ -267,7 +272,7 @@ const Payment: React.FC = () => {
                     <div className="space-y-3">
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Price per seat:</span>
-                        <span className="text-foreground font-medium">₹{paymentData.seatPrice}</span>
+                        <span className="text-foreground font-medium">₹{seatPrice}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Number of seats:</span>

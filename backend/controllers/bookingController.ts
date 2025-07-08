@@ -66,8 +66,8 @@ export const createBookingOrder = asyncHandler(
       throw createError("At least one seat must be selected", 400);
     }
 
-    // Calculate total amount (500 per seat)
-    const totalAmount = seatNumbers.length * 500;
+    // Calculate total amount (250 per seat)
+    const totalAmount = seatNumbers.length * 250;
 
     // Create Razorpay order
     const order = await createRazorpayOrder(totalAmount);
@@ -119,7 +119,7 @@ export const confirmBooking = asyncHandler(
       // Create booking
       const bookingResult = await client.query(
         "INSERT INTO bookings (user_id, show_id, amount, status) VALUES ($1, $2, $3, $4) RETURNING *",
-        [userId, showId, seatNumbers.length * 500, "confirmed"],
+        [userId, showId, seatNumbers.length * 250, "confirmed"],
       );
 
       const booking = bookingResult.rows[0];

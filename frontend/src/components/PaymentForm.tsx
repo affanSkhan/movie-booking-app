@@ -149,7 +149,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         
         <div className="flex justify-between">
           <span className="text-gray-700 dark:text-gray-300">Price per Seat:</span>
-          <span className="font-medium text-gray-900 dark:text-white">₹500</span>
+          <span className="font-medium text-gray-900 dark:text-white">₹250</span>
         </div>
         
         <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
@@ -174,8 +174,6 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         </button>
 
         <div className="text-sm text-gray-600 dark:text-gray-400 text-center">
-          <p>🔒 Secure payment powered by Razorpay</p>
-          <p>⏰ Seats will be held for 3 minutes during payment</p>
         </div>
       </div>
     </div>
