@@ -411,7 +411,7 @@ class SeatLockingService {
       if (result.rowCount === 0) {
         return { success: false, message: 'No seats were extended (not locked by user or not locked).' };
       }
-      // Broadcast update for each seat
+      // Broadcast update for each seat and update in-memory timeout
       for (const seatNumber of seatNumbers) {
         io.to(`show-${showId}`).emit('seat-updated', {
           seatNumber,
@@ -419,6 +419,17 @@ class SeatLockingService {
           userId,
           lockExpiresAt,
         });
+        // Update in-memory timeout to match new lock_expires_at
+        this.clearLockTimeout(seatNumber, showId, userId);
+        const msUntilExpire = lockExpiresAt.getTime() - Date.now();
+        if (msUntilExpire > 0) {
+          const timeoutKey = `${seatNumber}-${showId}-${userId}`;
+          const timeout = setTimeout(async () => {
+            console.log(`⏰ Auto-unlocking seat ${seatNumber} for user ${userId} (extended)`);
+            await this.unlockSeat(seatNumber, showId, userId, "timeout");
+          }, msUntilExpire);
+          this.lockTimeouts.set(timeoutKey, timeout);
+        }
       }
       return { success: true, message: 'Lock duration extended.' };
     } catch (error) {
