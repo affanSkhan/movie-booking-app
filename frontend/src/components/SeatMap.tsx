@@ -181,48 +181,45 @@ const SeatMap: React.FC<SeatMapProps> = ({
     // Check for real-time updates first
     const realTimeUpdate = seatUpdates.get(seat.seat_number);
     if (realTimeUpdate) {
+      console.log('[SeatMap] getSeatStatus realTimeUpdate:', seat.seat_number, realTimeUpdate);
       return realTimeUpdate.status;
     }
-
     // Use current_status from database (handles expired locks)
     return seat.current_status || seat.status;
   };
 
   const isSeatLockedByCurrentUser = (seat: Seat): boolean => {
     const realTimeUpdate = seatUpdates.get(seat.seat_number);
-    
     if (realTimeUpdate) {
-      // Use real-time update data
       const isLockedByCurrentUser = realTimeUpdate.userId === user?.id;
-      console.log(`🔍 Seat ${seat.seat_number} - Real-time update: userId=${realTimeUpdate.userId}, currentUser=${user?.id}, isLockedByCurrentUser=${isLockedByCurrentUser}`);
+      console.log(`[SeatMap] isSeatLockedByCurrentUser: seat=${seat.seat_number}, realTimeUserId=${realTimeUpdate.userId}, currentUser=${user?.id}, result=${isLockedByCurrentUser}`);
       return isLockedByCurrentUser;
     } else {
-      // Use database data
       const isLockedByCurrentUser = seat.locked_by === user?.id;
-      console.log(`🔍 Seat ${seat.seat_number} - Database data: locked_by=${seat.locked_by}, currentUser=${user?.id}, isLockedByCurrentUser=${isLockedByCurrentUser}`);
+      console.log(`[SeatMap] isSeatLockedByCurrentUser: seat=${seat.seat_number}, dbLockedBy=${seat.locked_by}, currentUser=${user?.id}, result=${isLockedByCurrentUser}`);
       return isLockedByCurrentUser;
     }
   };
 
   const getSeatColor = (status: string, seat: Seat) => {
+    let color = 'bg-gray-400';
     switch (status) {
       case 'available':
-        return 'bg-green-500 hover:bg-green-600';
+        color = 'bg-green-500 hover:bg-green-600';
+        break;
       case 'locked': {
-        // Check if locked by current user
         const isLockedByCurrentUser = isSeatLockedByCurrentUser(seat);
-        
-        if (isLockedByCurrentUser) {
-          return 'bg-orange-500 hover:bg-orange-600'; // 🟠 Selected by current user
-        } else {
-          return 'bg-red-500 cursor-not-allowed'; // 🔴 Locked by others
-        }
+        color = isLockedByCurrentUser ? 'bg-orange-500 hover:bg-orange-600' : 'bg-red-500 cursor-not-allowed';
+        break;
       }
       case 'booked':
-        return 'bg-gray-800 cursor-not-allowed'; // ⚫ Booked
+        color = 'bg-gray-800 cursor-not-allowed';
+        break;
       default:
-        return 'bg-gray-400';
+        color = 'bg-gray-400';
     }
+    console.log(`[SeatMap] getSeatColor: seat=${seat.seat_number}, status=${status}, user=${user?.id}, color=${color}`);
+    return color;
   };
 
   const getSeatText = (status: string) => {
