@@ -40,6 +40,8 @@ const Payment: React.FC = () => {
   const [paymentTimeLeft, setPaymentTimeLeft] = useState<number>(600); // 10 minutes in seconds
   const [expired, setExpired] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const paymentCompletedRef = useRef(false);
+  const [paymentFlowActive, setPaymentFlowActive] = useState(false);
   
   // Get payment data from navigation state
   const paymentData = location.state as PaymentState & { paymentStart?: number };
@@ -91,6 +93,56 @@ const Payment: React.FC = () => {
     };
   }, [paymentData, navigate]);
 
+  // Only enable unlock logic if paymentFlowStarted flag is set
+  useEffect(() => {
+    if (sessionStorage.getItem('paymentFlowStarted') === 'true') {
+      setPaymentFlowActive(true);
+    }
+    // Clear the flag on unmount
+    return () => {
+      sessionStorage.removeItem('paymentFlowStarted');
+    };
+  }, []);
+
+  // Unlock seats if user leaves payment page before completing payment
+  useEffect(() => {
+    if (!paymentFlowActive) return;
+    const unlockSeats = () => {
+      if (!paymentCompletedRef.current && paymentData?.showId && paymentData?.selectedSeats?.length) {
+        api.post('/bookings/payment-failed', {
+          showId: paymentData.showId,
+          seatNumbers: paymentData.selectedSeats,
+        });
+      }
+    };
+    // On unmount (navigation away)
+    return () => {
+      unlockSeats();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentFlowActive, paymentData?.showId, paymentData?.selectedSeats]);
+
+  // Unlock seats on browser/tab close
+  useEffect(() => {
+    if (!paymentFlowActive) return;
+    const handleBeforeUnload = () => {
+      if (!paymentCompletedRef.current && paymentData?.showId && paymentData?.selectedSeats?.length) {
+        navigator.sendBeacon(
+          api.defaults.baseURL + '/bookings/payment-failed',
+          JSON.stringify({
+            showId: paymentData.showId,
+            seatNumbers: paymentData.selectedSeats,
+          })
+        );
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentFlowActive, paymentData?.showId, paymentData?.selectedSeats]);
+
   // Format show time
   const formatShowTime = (showTime: string) => {
     const date = new Date(showTime);
@@ -109,6 +161,8 @@ const Payment: React.FC = () => {
   };
 
   const handlePaymentSuccess = (paymentId: string, orderId: string) => {
+    paymentCompletedRef.current = true;
+    sessionStorage.removeItem('paymentFlowStarted');
     setToast({ 
       message: 'Payment successful! Redirecting to booking confirmation...', 
       type: 'success' 
@@ -130,6 +184,14 @@ const Payment: React.FC = () => {
       message: 'Payment failed. Please try again.', 
       type: 'error' 
     });
+  };
+
+  // Add a function to set paymentCompletedRef
+  const markPaymentStarted = () => {
+    paymentCompletedRef.current = true;
+  };
+  const markPaymentNotCompleted = () => {
+    paymentCompletedRef.current = false;
   };
 
   if (!paymentData) {
@@ -333,6 +395,8 @@ const Payment: React.FC = () => {
                 onPaymentSuccess={handlePaymentSuccess}
                 onPaymentFailure={handlePaymentFailure}
                 disabled={expired}
+                onPaymentStart={markPaymentStarted}
+                onPaymentCancel={markPaymentNotCompleted}
               />
               {expired && (
                 <div className="mt-4 text-center text-destructive font-semibold">Your selected seats have expired.</div>

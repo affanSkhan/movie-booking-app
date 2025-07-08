@@ -9,6 +9,8 @@ interface PaymentFormProps {
   onPaymentSuccess: (paymentId: string, orderId: string) => void;
   onPaymentFailure: () => void;
   disabled?: boolean;
+  onPaymentStart?: () => void;
+  onPaymentCancel?: () => void;
 }
 
 const PaymentForm: React.FC<PaymentFormProps> = ({
@@ -18,6 +20,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   onPaymentSuccess,
   onPaymentFailure,
   disabled,
+  onPaymentStart,
+  onPaymentCancel,
 }) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -36,13 +40,16 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   }, []);
 
   const handlePayment = async () => {
+    if (onPaymentStart) onPaymentStart();
     if (!user) {
       setError('Please login to proceed with payment');
+      if (onPaymentCancel) onPaymentCancel();
       return;
     }
 
     if (selectedSeats.length === 0) {
       setError('Please select at least one seat');
+      if (onPaymentCancel) onPaymentCancel();
       return;
     }
 
@@ -102,6 +109,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
           ondismiss: () => {
             console.log('❌ Payment modal dismissed');
             setLoading(false);
+            if (onPaymentCancel) onPaymentCancel();
           },
         },
       };
@@ -128,6 +136,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         console.error('❌ Failed to unlock seats after payment failure:', unlockError);
       }
       
+      if (onPaymentCancel) onPaymentCancel();
       onPaymentFailure();
     }
   };

@@ -171,6 +171,8 @@ const BookShow: React.FC = () => {
         seatNumbers: selectedSeats,
         durationMinutes: 10
       });
+      // Set payment flow flag
+      sessionStorage.setItem('paymentFlowStarted', 'true');
       // Pass timestamp for payment window
       navigate('/payment', {
         state: {
