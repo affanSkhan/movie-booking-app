@@ -18,7 +18,7 @@ interface UserSeatMapping {
 class SeatLockingService {
   private userSeatMapping: UserSeatMapping = {};
   private lockTimeouts: Map<string, NodeJS.Timeout> = new Map();
-  private readonly LOCK_DURATION = 3 * 60 * 1000; // 3 minutes in milliseconds
+  private readonly LOCK_DURATION = 1 * 60 * 1000; // 1 minute in milliseconds
 
   constructor() {
     // Start periodic cleanup of expired locks
@@ -290,7 +290,7 @@ class SeatLockingService {
     userId: number,
   ): Promise<{ success: boolean; message: string }> {
     console.log(
-      `🎫 Booking seats ${seatNumbers.join(", ")} for user ${userId}`,
+      `Booking seats ${seatNumbers.join(", ")} for user ${userId}`,
     );
 
     try {
