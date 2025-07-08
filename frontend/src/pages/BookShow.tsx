@@ -7,6 +7,7 @@ import SeatMap from '../components/SeatMap';
 import Toast from '../components/ui/Toast';
 import type { ToastType } from '../components/ui/Toast';
 import { useSocket } from '../contexts/SocketContextInstance';
+import api from '../services/api';
 
 interface Movie {
   id: number;
@@ -156,25 +157,35 @@ const BookShow: React.FC = () => {
   };
 
   // Handle proceed to payment
-  const handleProceedToPayment = () => {
+  const handleProceedToPayment = async () => {
     if (selectedSeats.length === 0) {
       setToast({ message: 'Please select at least one seat', type: 'error' });
       return;
     }
     if (selectionTimerRef.current) clearInterval(selectionTimerRef.current);
     setSelectionTimeLeft(null);
-    // Pass timestamp for payment window
-    navigate('/payment', {
-      state: {
+    // Extend lock for 10 minutes before navigating
+    try {
+      await api.post('/seats/extend-lock', {
         showId,
-        movie,
-        show,
-        selectedSeats,
-        totalPrice,
-        seatPrice,
-        paymentStart: Date.now()
-      }
-    });
+        seatNumbers: selectedSeats,
+        durationMinutes: 10
+      });
+      // Pass timestamp for payment window
+      navigate('/payment', {
+        state: {
+          showId,
+          movie,
+          show,
+          selectedSeats,
+          totalPrice,
+          seatPrice,
+          paymentStart: Date.now()
+        }
+      });
+    } catch {
+      setToast({ message: 'Failed to extend seat lock. Please try again.', type: 'error' });
+    }
   };
 
   // Add a function to reload seats from backend

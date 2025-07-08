@@ -5,6 +5,7 @@ import { Clock, MapPin, Calendar, Shield, CreditCard } from 'lucide-react';
 import PaymentForm from '../components/PaymentForm';
 import Toast from '../components/ui/Toast';
 import type { ToastType } from '../components/ui/Toast';
+import api from '../services/api';
 
 interface Movie {
   id: number;
@@ -66,9 +67,17 @@ const Payment: React.FC = () => {
           clearInterval(timerRef.current!);
           setExpired(true);
           setToast({ message: 'Your selected seats have expired.', type: 'error' });
-          // TODO: Call unlock API or socket event to unlock seats for others
-          // Optionally, redirect after a delay
-          setTimeout(() => navigate('/movies'), 3000);
+          // Call unlock API to unlock seats for others
+          if (paymentData?.showId && paymentData?.selectedSeats) {
+            api.post('/bookings/payment-failed', {
+              showId: paymentData.showId,
+              seatNumbers: paymentData.selectedSeats,
+            }).finally(() => {
+              setTimeout(() => navigate('/movies'), 3000);
+            });
+          } else {
+            setTimeout(() => navigate('/movies'), 3000);
+          }
           return 0;
         }
         return t - 1;

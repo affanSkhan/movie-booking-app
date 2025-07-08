@@ -391,6 +391,42 @@ class SeatLockingService {
     }
   }
 
+  /**
+   * Extend lock for multiple seats for a user
+   */
+  async extendLockDurationForSeats(
+    seatNumbers: string[],
+    showId: string,
+    userId: number,
+    durationMs: number
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const lockExpiresAt = new Date(Date.now() + durationMs);
+      const result = await pool.query(
+        `UPDATE seats 
+         SET lock_expires_at = $1 
+         WHERE seat_number = ANY($2) AND show_id = $3 AND locked_by = $4 AND status = 'locked'`,
+        [lockExpiresAt, seatNumbers, showId, userId]
+      );
+      if (result.rowCount === 0) {
+        return { success: false, message: 'No seats were extended (not locked by user or not locked).' };
+      }
+      // Broadcast update for each seat
+      for (const seatNumber of seatNumbers) {
+        io.to(`show-${showId}`).emit('seat-updated', {
+          seatNumber,
+          status: 'locked',
+          userId,
+          lockExpiresAt,
+        });
+      }
+      return { success: true, message: 'Lock duration extended.' };
+    } catch (error) {
+      console.error('❌ Error extending lock duration:', error);
+      return { success: false, message: 'Failed to extend lock duration.' };
+    }
+  }
+
   // Private helper methods
   private trackUserSeat(
     socketId: string,
