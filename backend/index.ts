@@ -15,14 +15,25 @@ const server = createServer(app);
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
-  // Add your actual Netlify site URL below (update this in production!)
+  "https://movie-booking-pf.netlify.app", // Production frontend URL
   process.env.FRONTEND_URL, // e.g. https://your-netlify-site.netlify.app
 ].filter(Boolean);
 
 const io = new Server(server, {
   cors: {
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.netlify.app')) {
+      // Allow requests with no origin (like mobile apps, server-to-server)
+      if (!origin) {
+        return callback(null, true);
+      }
+      
+      // Allow all origins in production for now (can be more restrictive later)
+      if (process.env.NODE_ENV === "production") {
+        return callback(null, true);
+      }
+      
+      // In development, check against allowed origins
+      if (allowedOrigins.includes(origin) || origin.endsWith('.netlify.app')) {
         callback(null, true);
       } else {
         console.warn(`CORS: Origin not allowed: ${origin}`);
@@ -50,7 +61,18 @@ const pool = new Pool({
 // Middleware
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.netlify.app')) {
+    // Allow requests with no origin (like mobile apps, server-to-server)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    // Allow all origins in production for now (can be more restrictive later)
+    if (process.env.NODE_ENV === "production") {
+      return callback(null, true);
+    }
+    
+    // In development, check against allowed origins
+    if (allowedOrigins.includes(origin) || origin.endsWith('.netlify.app')) {
       return callback(null, true);
     } else {
       console.warn(`CORS: Origin not allowed: ${origin}`);
@@ -59,6 +81,19 @@ app.use(cors({
   },
   credentials: true,
 }));
+
+// Additional CORS headers for better compatibility
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 app.use(express.json());
 
