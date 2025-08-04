@@ -36,16 +36,49 @@ const io = new Server(server, {
 });
 
 // Database connection
-const pool = new Pool({
+const pool = new Pool(
+  process.env.DATABASE_URL ? 
+  // Use DATABASE_URL if provided (Render's preferred method)
+  {
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+    connectionTimeoutMillis: 30000,
+    idleTimeoutMillis: 30000,
+    max: 10,
+    statement_timeout: 60000,
+  } :
+  // Fallback to individual environment variables
+  {
+    user: process.env.DB_USER || "postgres",
+    host: process.env.DB_HOST || "localhost",
+    database: process.env.DB_NAME || "movie_booking_db",
+    password: process.env.DB_PASSWORD || "8d9a6594e6fc4135ae527daf7b2b9196",
+    port: parseInt(process.env.DB_PORT || "5432"),
+    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+    connectionTimeoutMillis: 30000,
+    idleTimeoutMillis: 30000,
+    max: 10,
+    statement_timeout: 60000,
+  }
+);
+
+// Add connection error handling
+pool.on('error', (err) => {
+  console.error('❌ Unexpected database error:', err);
+});
+
+// Test initial database connection
+pool.on('connect', () => {
+  console.log('✅ Database pool connected');
+});
+
+console.log('🔧 Database config:', {
+  usingDatabaseUrl: !!process.env.DATABASE_URL,
   user: process.env.DB_USER || "postgres",
-  host: process.env.DB_HOST || "localhost",
+  host: process.env.DB_HOST || "localhost", 
   database: process.env.DB_NAME || "movie_booking_db",
-  password: process.env.DB_PASSWORD || "8d9a6594e6fc4135ae527daf7b2b9196",
-  port: parseInt(process.env.DB_PORT || "5432"),
-  ssl:
-    process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: false }
-      : false,
+  port: process.env.DB_PORT || "5432",
+  ssl: process.env.NODE_ENV === "production"
 });
 
 // Middleware - Simplified CORS for better compatibility
