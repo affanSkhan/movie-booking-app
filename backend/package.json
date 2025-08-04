@@ -8,6 +8,7 @@
     "start": "bun run index.ts",
     "build": "tsc",
     "postinstall": "bun run build",
+    "init-db": "node init_database.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

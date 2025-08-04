@@ -5,11 +5,17 @@ import { createError, asyncHandler } from "../utils/handleErrors";
 // Get all movies
 export const getAllMovies = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await pool.query(
-      "SELECT * FROM movies ORDER BY created_at DESC",
-    );
-
-    res.json(result.rows);
+    try {
+      console.log('Attempting to fetch movies from database...');
+      const result = await pool.query(
+        "SELECT * FROM movies ORDER BY created_at DESC",
+      );
+      console.log(`Successfully fetched ${result.rows.length} movies`);
+      res.json(result.rows);
+    } catch (error: any) {
+      console.error('Error in getAllMovies:', error);
+      throw createError(`Database error: ${error.message}`, 500);
+    }
   },
 );
 
