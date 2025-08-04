@@ -10,6 +10,13 @@ import { verifyJWT } from "./utils/generateJWT";
 // Load environment variables
 dotenv.config();
 
+// Log environment info for debugging
+console.log('🔧 Environment:', {
+  NODE_ENV: process.env.NODE_ENV,
+  PORT: process.env.PORT,
+  FRONTEND_URL: process.env.FRONTEND_URL
+});
+
 const app = express();
 const server = createServer(app);
 const allowedOrigins = [
@@ -21,27 +28,10 @@ const allowedOrigins = [
 
 const io = new Server(server, {
   cors: {
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, server-to-server)
-      if (!origin) {
-        return callback(null, true);
-      }
-      
-      // Allow all origins in production for now (can be more restrictive later)
-      if (process.env.NODE_ENV === "production") {
-        return callback(null, true);
-      }
-      
-      // In development, check against allowed origins
-      if (allowedOrigins.includes(origin) || origin.endsWith('.netlify.app')) {
-        callback(null, true);
-      } else {
-        console.warn(`CORS: Origin not allowed: ${origin}`);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: true, // Allow all origins
     credentials: true,
     methods: ["GET", "POST"],
+    allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
   },
 });
 
@@ -58,44 +48,39 @@ const pool = new Pool({
       : false,
 });
 
-// Middleware
+// Middleware - Simplified CORS for better compatibility
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, server-to-server)
-    if (!origin) {
-      return callback(null, true);
-    }
-    
-    // Allow all origins in production for now (can be more restrictive later)
-    if (process.env.NODE_ENV === "production") {
-      return callback(null, true);
-    }
-    
-    // In development, check against allowed origins
-    if (allowedOrigins.includes(origin) || origin.endsWith('.netlify.app')) {
-      return callback(null, true);
-    } else {
-      console.warn(`CORS: Origin not allowed: ${origin}`);
-      return callback(new Error("Not allowed by CORS"));
-    }
-  },
+  origin: true, // Allow all origins in production
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Cache-Control'],
+  optionsSuccessStatus: 200
 }));
 
-// Additional CORS headers for better compatibility
+// Additional explicit CORS headers
 app.use((req: any, res: any, next: any) => {
   res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control');
+  res.header('Access-Control-Max-Age', '3600');
   
+  // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
+    console.log(`✅ CORS preflight for ${req.url} from origin: ${req.headers.origin}`);
     return res.sendStatus(200);
   }
+  
   next();
 });
 
 app.use(express.json());
+
+// Add request logging for debugging
+app.use((req: any, res: any, next: any) => {
+  console.log(`📝 ${req.method} ${req.url} - Origin: ${req.headers.origin || 'none'}`);
+  next();
+});
 
 // Basic route
 app.get("/", (req, res) => {
