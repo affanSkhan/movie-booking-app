@@ -41,6 +41,13 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
 
   const handlePayment = async () => {
     if (onPaymentStart) onPaymentStart();
+    const RazorpayConstructor = (window as unknown as { Razorpay?: new (options: unknown) => { open: () => void } }).Razorpay;
+    if (!RazorpayConstructor) {
+      setError('Secure checkout is still loading or blocked by your browser. Please wait a moment and try again.');
+      if (onPaymentCancel) onPaymentCancel();
+      return;
+    }
+
     if (!user) {
       setError('Please login to proceed with payment');
       if (onPaymentCancel) onPaymentCancel();
@@ -118,11 +125,6 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         },
       };
 
-      // Handle a slow/blocked checkout script gracefully instead of throwing a runtime error.
-      const RazorpayConstructor = (window as unknown as { Razorpay?: new (options: unknown) => { open: () => void } }).Razorpay;
-      if (!RazorpayConstructor) {
-        throw new Error('Razorpay checkout did not load. Please check your connection and try again.');
-      }
       const razorpay = new RazorpayConstructor(options);
       razorpay.open();
 
