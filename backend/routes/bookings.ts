@@ -1,6 +1,6 @@
 import express from "express";
 import { io, pool } from "../index";
-import { verifyPayment } from "../utils/razorpayClient";
+import { razorpay, verifyPayment } from "../utils/razorpayClient";
 import { authenticateToken } from "../middlewares/authMiddleware";
 import { seatLockingService } from "../services/seatLockingService";
 
@@ -79,6 +79,15 @@ router.post("/confirm", authenticateToken, async (req, res) => {
     const isPaymentValid = await verifyPayment(String(paymentId), String(orderId), String(signature));
     if (!isPaymentValid) {
       res.status(400).json({ error: "Payment verification failed." });
+      return;
+    }
+
+    // A valid signature alone is not enough: the signed order must also be for
+    // this exact seat count and server-defined price.
+    const paymentOrder = await razorpay.orders.fetch(String(orderId));
+    const expectedAmountInPaise = seatNumbers.length * 250 * 100;
+    if (Number(paymentOrder.amount) !== expectedAmountInPaise || paymentOrder.currency !== "INR") {
+      res.status(400).json({ error: "The verified payment order does not match this booking total." });
       return;
     }
 
