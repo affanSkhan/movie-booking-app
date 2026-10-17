@@ -1,355 +1,148 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ArrowRight, Clock3, Film, Search, Sparkles, SlidersHorizontal, CalendarDays, X } from 'lucide-react';
 import { moviesAPI, showsAPI } from '../services/api';
-import { Clock, Star, Search, Filter, Calendar, Sparkles, Zap, Film } from 'lucide-react';
 
 interface Movie {
   id: number;
   title: string;
-  description: string;
+  description?: string;
   poster_url?: string;
   duration?: number;
-  created_at: string;
+  created_at?: string;
 }
+interface Show { id: number; movie_id: number; show_time: string; screen: string; }
 
-interface Show {
-  id: number;
-  movie_id: number;
-  show_time: string;
-  screen: string;
-}
+const listFrom = <T,>(payload: unknown): T[] => {
+  if (Array.isArray(payload)) return payload as T[];
+  if (payload && typeof payload === 'object' && Array.isArray((payload as { movies?: unknown }).movies)) return (payload as { movies: T[] }).movies;
+  return [];
+};
+const formatDuration = (minutes?: number) => {
+  if (!minutes || minutes < 1) return 'Runtime unavailable';
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return hours ? hours + 'h' + (rest ? ' ' + rest + 'm' : '') : rest + ' min';
+};
 
 const Movies: React.FC = () => {
   const navigate = useNavigate();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [shows, setShows] = useState<Show[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const [selectedDate, setSelectedDate] = useState('');
-  const [sortBy, setSortBy] = useState<'title' | 'duration' | 'newest'>('newest');
+  const [runtimeFilter, setRuntimeFilter] = useState<'all' | 'short' | 'long'>('all');
+  const [sortBy, setSortBy] = useState<'featured' | 'title' | 'duration'>('featured');
+  const [retry, setRetry] = useState(0);
 
-  // Fetch movies and shows
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [moviesResponse, showsResponse] = await Promise.all([
-          moviesAPI.getAll(),
-          showsAPI.getByMovie('all')
-        ]);
-        
-        setMovies(moviesResponse.data);
-        setShows(showsResponse.data);
-      } catch (err) {
-        setError('Failed to load movies. Please try again.');
-        console.error('Error fetching movies:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    let active = true;
+    setLoading(true);
+    setError('');
+    Promise.all([moviesAPI.getAll(), showsAPI.getAll().catch(() => ({ data: [] }))])
+      .then(([movieResponse, showResponse]) => {
+        if (!active) return;
+        setMovies(listFrom<Movie>(movieResponse.data));
+        setShows(listFrom<Show>(showResponse.data));
+      })
+      .catch((reason: unknown) => {
+        console.error('Unable to load movies:', reason);
+        if (active) setError('We could not load the catalogue. Please retry in a moment.');
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [retry]);
 
-    fetchData();
-  }, []);
-
-  // Get shows count for a movie
-  const getShowsCount = (movieId: number) => {
-    return shows.filter(show => show.movie_id === movieId).length;
-  };
-
-  // Filter and sort movies
-  const filteredMovies = movies
-    .filter(movie => {
-      const matchesSearch = movie.title.toLowerCase().includes(search.toLowerCase()) ||
-                           movie.description?.toLowerCase().includes(search.toLowerCase());
-      return matchesSearch;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'title':
-          return a.title.localeCompare(b.title);
-        case 'duration':
-          return (a.duration || 0) - (b.duration || 0);
-        case 'newest':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        default:
-          return 0;
-      }
+  const filteredMovies = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    const result = movies.filter((movie) => {
+      const matchesQuery = ((movie.title || '') + ' ' + (movie.description || '')).toLowerCase().includes(query);
+      const minutes = movie.duration || 0;
+      const matchesRuntime = runtimeFilter === 'all' || (runtimeFilter === 'short' ? minutes > 0 && minutes <= 120 : minutes > 120);
+      return matchesQuery && matchesRuntime;
     });
-
-  // Format duration
-  const formatDuration = (minutes?: number) => {
-    if (!minutes) return 'N/A';
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
-  };
-
-  // Get today's date for date picker
-  const today = new Date().toISOString().split('T')[0];
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center">
-        <motion.div 
-          className="text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-6"></div>
-            <motion.div
-              className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-primary/40 rounded-full animate-spin"
-              style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}
-            />
-          </div>
-          <p className="text-muted-foreground text-lg">Loading movies...</p>
-        </motion.div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center">
-        <motion.div 
-          className="text-center bg-card border border-border/50 rounded-2xl p-8 shadow-lg backdrop-blur-sm"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="text-destructive text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-foreground mb-2">Oops! Something went wrong</h2>
-          <p className="text-muted-foreground mb-6">{error}</p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => window.location.reload()}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-xl font-medium transition-colors duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
-          >
-            Try Again
-          </motion.button>
-        </motion.div>
-      </div>
-    );
-  }
+    return result.sort((a, b) => {
+      if (sortBy === 'title') return a.title.localeCompare(b.title);
+      if (sortBy === 'duration') return (a.duration || 0) - (b.duration || 0);
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    });
+  }, [movies, search, runtimeFilter, sortBy]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 mt-16">
-      {/* Enhanced Header */}
-      <header className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border-b border-border/50">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
-          >
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="inline-block mb-6"
-            >
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
-                <Sparkles className="w-8 h-8 text-primary" />
-              </div>
-            </motion.div>
-            
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">
-              Now Showing
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Discover and book your favorite movies with our curated collection
-            </p>
-          </motion.div>
-        </div>
-      </header>
-
-      {/* Enhanced Search and Filters */}
-      <section className="relative -mt-6 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            className="backdrop-blur-xl bg-card/80 dark:bg-card/90 border border-border/50 rounded-2xl shadow-soft-dark p-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Enhanced Search */}
-              <div className="flex-1 relative group">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-200 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search movies by title or description..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-background/50 dark:bg-background/30 border border-border/50 rounded-xl text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 backdrop-blur-sm"
-                />
-              </div>
-
-              {/* Enhanced Date Filter */}
-              <div className="relative group">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-200 w-5 h-5" />
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  min={today}
-                  className="pl-10 pr-4 py-3 bg-background/50 dark:bg-background/30 border border-border/50 rounded-xl text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 backdrop-blur-sm cursor-pointer"
-                  aria-label="Filter by date"
-                />
-              </div>
-
-              {/* Enhanced Sort */}
-              <div className="relative group">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors duration-200 w-5 h-5" />
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as 'title' | 'duration' | 'newest')}
-                  className="pl-10 pr-8 py-3 bg-background/50 dark:bg-background/30 border border-border/50 rounded-xl text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 backdrop-blur-sm appearance-none cursor-pointer"
-                  aria-label="Sort movies by"
-                >
-                  <option value="newest">Newest First</option>
-                  <option value="title">Title A-Z</option>
-                  <option value="duration">Duration</option>
-                </select>
+    <div className="min-h-screen bg-background pb-16 pt-28 text-foreground sm:pt-32">
+      <section className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+        <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-orange-500/[0.11] via-card to-rose-500/[0.07] p-6 sm:p-9 lg:p-12">
+          <div aria-hidden="true" className="absolute -right-10 -top-20 h-64 w-64 rounded-full bg-orange-500/10 blur-3xl" />
+          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[.18em] text-primary"><Film className="h-3.5 w-3.5" /> The catalogue</div>
+              <h1 className="text-4xl font-black tracking-tight sm:text-5xl">Stories worth the screen.</h1>
+              <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">Explore the collection, filter by runtime, and jump straight to a movie’s upcoming showtimes.</p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <span className="rounded-full border border-border bg-card/80 px-3 py-1.5 text-xs font-bold">{movies.length} movies</span>
+                <span className="rounded-full border border-border bg-card/80 px-3 py-1.5 text-xs font-bold">{shows.length} showtimes scheduled</span>
               </div>
             </div>
-          </motion.div>
+            <Link to="/discover" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-extrabold text-primary-foreground shadow-lg shadow-orange-500/15 transition hover:-translate-y-0.5"><Sparkles className="h-4 w-4" /> Get an AI pick</Link>
+          </div>
         </div>
-      </section>
 
-      {/* Enhanced Movies Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {filteredMovies.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-16"
-          >
-            <div className="bg-card border border-border/50 rounded-2xl p-12 backdrop-blur-sm">
-              <div className="w-16 h-16 bg-muted/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Film className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <h3 className="text-2xl font-semibold text-foreground mb-3">No movies found</h3>
-              <p className="text-muted-foreground text-lg">Try adjusting your search or filters</p>
-            </div>
-          </motion.div>
+        <div className="mt-8 flex flex-col gap-4 border-b border-border pb-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="mr-1 inline-flex items-center gap-2 text-sm font-bold text-muted-foreground"><SlidersHorizontal className="h-4 w-4" /> Filter</span>
+            {([{value:'all',label:'All runtimes'},{value:'short',label:'Up to 2 hours'},{value:'long',label:'Over 2 hours'}] as const).map((option) => (
+              <button key={option.value} type="button" onClick={() => setRuntimeFilter(option.value)}
+                className={'rounded-full border px-3.5 py-2 text-xs font-bold transition ' + (runtimeFilter === option.value ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-muted-foreground hover:text-foreground')}>
+                {option.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+            <label className="relative flex min-w-0 items-center sm:min-w-[18rem]">
+              <Search className="pointer-events-none absolute left-4 h-4 w-4 text-muted-foreground" />
+              <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title or plot…" aria-label="Search the movie catalogue"
+                className="h-11 w-full rounded-xl border border-input bg-card pl-11 pr-10 text-sm outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/15" />
+              {search && <button type="button" onClick={() => setSearch('')} aria-label="Clear search" className="absolute right-3 rounded p-1 text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>}
+            </label>
+            <label className="flex h-11 items-center gap-2 rounded-xl border border-input bg-card px-3.5 text-sm text-muted-foreground focus-within:border-primary">
+              <CalendarDays className="h-4 w-4" /><span className="text-xs font-bold">Sort</span>
+              <select aria-label="Sort movies" value={sortBy} onChange={(event) => setSortBy(event.target.value as typeof sortBy)} className="max-w-[9rem] bg-transparent text-sm font-semibold text-foreground outline-none [&>option]:bg-background">
+                <option value="featured">Recently added</option><option value="title">Title A–Z</option><option value="duration">Shortest first</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div className="mt-6 flex items-center justify-between text-sm"><p className="text-muted-foreground">{loading ? 'Loading movies…' : 'Showing ' + filteredMovies.length + ' of ' + movies.length + ' titles'}</p><p className="hidden text-xs text-muted-foreground sm:block">Select a poster to view showtimes</p></div>
+
+        {loading ? (
+          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">{Array.from({length:10}, (_, index) => <div key={index} className="animate-pulse"><div className="aspect-[2/3] rounded-2xl bg-muted" /><div className="mt-3 h-4 w-3/4 rounded bg-muted" /><div className="mt-2 h-3 w-1/2 rounded bg-muted/70" /></div>)}</div>
+        ) : error ? (
+          <div className="mt-8 rounded-2xl border border-border bg-card px-6 py-14 text-center"><Film className="mx-auto h-9 w-9 text-primary" /><h2 className="mt-4 text-xl font-extrabold">The catalogue is taking a break</h2><p className="mt-2 text-sm text-muted-foreground">{error}</p><button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-5 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground">Try again</button></div>
+        ) : filteredMovies.length === 0 ? (
+          <div className="mt-8 rounded-2xl border border-border bg-card px-6 py-14 text-center"><Search className="mx-auto h-9 w-9 text-muted-foreground" /><h2 className="mt-4 text-xl font-extrabold">No films found</h2><p className="mt-2 text-sm text-muted-foreground">Try another search or change your runtime filter.</p><button type="button" onClick={() => { setSearch(''); setRuntimeFilter('all'); }} className="mt-5 rounded-xl border border-border px-4 py-2.5 text-sm font-bold">Clear filters</button></div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            <AnimatePresence>
-              {filteredMovies.map((movie, index) => (
-                <motion.div
-                  key={movie.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  whileHover={{ 
-                    y: -8,
-                    transition: { duration: 0.2 }
-                  }}
-                  className="group cursor-pointer"
-                  onClick={() => navigate(`/showtimes/${movie.id}`)}
-                >
-                  <div className="relative bg-card border border-border/50 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
-                    {/* Enhanced Poster */}
-                    <div className="relative overflow-hidden rounded-t-2xl">
-                      <img
-                        src={movie.poster_url || 'https://via.placeholder.com/300x450/1f2937/ffffff?text=No+Poster'}
-                        alt={movie.title}
-                        className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-500"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = 'https://via.placeholder.com/300x450/1f2937/ffffff?text=No+Poster';
-                        }}
-                      />
-                      
-                      {/* Enhanced overlay with show count */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="absolute bottom-4 left-4 right-4">
-                          <div className="backdrop-blur-md bg-white/20 dark:bg-black/40 border border-white/30 dark:border-white/10 rounded-xl p-4">
-                            <p className="text-sm font-medium text-white flex items-center gap-2">
-                              <Zap className="w-4 h-4" />
-                              {getShowsCount(movie.id)} showtimes available
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Enhanced Duration badge */}
-                      {movie.duration && (
-                        <div className="absolute top-3 right-3 backdrop-blur-md bg-white/20 dark:bg-black/40 border border-white/30 dark:border-white/10 px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-white" />
-                          <span className="text-white">{formatDuration(movie.duration)}</span>
-                        </div>
-                      )}
-
-                      {/* Enhanced Rating badge */}
-                      <div className="absolute top-3 left-3 backdrop-blur-md bg-white/20 dark:bg-black/40 border border-white/30 dark:border-white/10 px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-1">
-                        <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                        <span className="text-white">4.5</span>
-                      </div>
-                    </div>
-
-                    {/* Enhanced Content */}
-                    <div className="p-6">
-                      <h3 className="text-lg font-bold mb-3 text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
-                        {movie.title}
-                      </h3>
-                      
-                      <p className="text-muted-foreground text-sm mb-4 line-clamp-2 leading-relaxed">
-                        {movie.description || 'No description available.'}
-                      </p>
-
-                      {/* Enhanced Movie details */}
-                      <div className="flex items-center justify-between text-xs text-muted-foreground mb-6">
-                        <span className="bg-primary/10 text-primary px-3 py-1.5 rounded-full font-medium">Action • Drama</span>
-                        <span className="bg-muted text-muted-foreground px-3 py-1.5 rounded-full font-medium">English</span>
-                      </div>
-
-                      {/* Enhanced CTA Button */}
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-4 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/showtimes/${movie.id}`);
-                        }}
-                      >
-                        <Calendar className="w-4 h-4" />
-                        Book Now
-                      </motion.button>
-                    </div>
-
-                    {/* Enhanced hover effect border */}
-                    <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-primary/30 transition-colors duration-300 pointer-events-none" />
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
+            {filteredMovies.map((movie, index) => (
+              <motion.article key={movie.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .28, delay: Math.min(index % 5, 4) * .035 }} className="group min-w-0">
+                <button type="button" onClick={() => navigate('/showtimes/' + movie.id)} className="relative block aspect-[2/3] w-full overflow-hidden rounded-2xl border border-border bg-slate-900 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" aria-label={'View showtimes for ' + movie.title}>
+                  {movie.poster_url ? <img src={movie.poster_url} alt={movie.title + ' poster'} loading="lazy" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" /> : null}
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_15%,rgba(251,146,60,.2),transparent_45%),linear-gradient(145deg,#242635,#101117)]" />
+                  {movie.poster_url && <img src={movie.poster_url} alt="" aria-hidden="true" loading="lazy" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/5 to-transparent" />
+                  <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/40 px-2.5 py-1.5 text-[10px] font-bold text-white backdrop-blur">{movie.duration ? <><Clock3 className="h-3 w-3" />{formatDuration(movie.duration)}</> : 'Movie'}</span>
+                  <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4"><p className="line-clamp-2 text-sm font-extrabold leading-snug text-white sm:text-base">{movie.title}</p><p className="mt-2 text-[11px] font-semibold text-orange-200">{shows.filter((show) => show.movie_id === movie.id).length} upcoming showtime(s)</p><span className="mt-2 inline-flex items-center gap-1.5 text-xs font-extrabold text-white/80">Explore <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" /></span></div>
+                </button>
+                <p className="mt-3 line-clamp-2 text-xs leading-5 text-muted-foreground sm:text-sm">{movie.description || 'Discover this title and find a showtime that suits you.'}</p>
+              </motion.article>
+            ))}
           </div>
         )}
       </section>
-
-      {/* Enhanced Results count */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-        <motion.p 
-          className="text-muted-foreground text-sm bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl px-4 py-3 inline-block"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-        >
-          Showing {filteredMovies.length} of {movies.length} movies
-        </motion.p>
-      </div>
     </div>
   );
 };
 
-export default Movies; 
+export default Movies;

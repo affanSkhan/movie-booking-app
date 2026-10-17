@@ -1,496 +1,152 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ArrowLeft, ArrowRight, CalendarDays, Clock3, Film, MapPin, Search, Sparkles, Ticket } from 'lucide-react';
 import { moviesAPI, showsAPI } from '../services/api';
-import { Clock, Calendar, MapPin, Users, Film } from 'lucide-react';
 
-interface Movie {
-  id: number;
-  title: string;
-  description: string;
-  poster_url?: string;
-  duration?: number;
-  created_at: string;
-}
+interface Movie { id: number; title: string; description?: string; poster_url?: string; duration?: number; }
+interface Show { id: number; movie_id: number; show_time: string; screen: string; created_at?: string; }
+interface ShowWithMovie extends Show { movie?: Movie; }
 
-interface Show {
-  id: number;
-  movie_id: number;
-  show_time: string;
-  screen: string;
-  created_at: string;
-}
-
-interface ShowWithAvailability extends Show {
-  availableSeats: number;
-  totalSeats: number;
-  status: 'available' | 'filling-fast' | 'almost-full' | 'sold-out';
-  movie?: Movie;
-}
+const listFrom = <T,>(payload: unknown): T[] => {
+  if (Array.isArray(payload)) return payload as T[];
+  if (payload && typeof payload === 'object' && Array.isArray((payload as { shows?: unknown }).shows)) return (payload as { shows: T[] }).shows;
+  return [];
+};
+const dateKey = (dateValue: string | Date) => {
+  const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+  return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+};
+const formatDate = (value: string) => new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(value));
+const formatTime = (value: string) => new Intl.DateTimeFormat('en-IN', { hour: 'numeric', minute: '2-digit' }).format(new Date(value));
+const formatLongDate = (value: string) => new Intl.DateTimeFormat('en-IN', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(value));
 
 const Showtimes: React.FC = () => {
   const { movieId } = useParams<{ movieId: string }>();
   const navigate = useNavigate();
-  const [movie, setMovie] = useState<Movie | null>(null);
-  const [shows, setShows] = useState<ShowWithAvailability[]>([]);
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [shows, setShows] = useState<ShowWithMovie[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState('');
-  const [sortBy, setSortBy] = useState<'time' | 'screen'>('time');
+  const [error, setError] = useState('');
+  const [selectedDate, setSelectedDate] = useState('all');
+  const [screenFilter, setScreenFilter] = useState('all');
+  const [retry, setRetry] = useState(0);
 
-  // Fetch movie and shows data
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        if (movieId) {
-          // Fetch showtimes for specific movie
-          const [movieResponse, showsResponse] = await Promise.all([
-            moviesAPI.getById(movieId),
-            showsAPI.getByMovie(movieId)
-          ]);
-          
-          setMovie(movieResponse.data);
-          
-          // Add mock availability data (in real app, this would come from seats API)
-          const showsWithAvailability: ShowWithAvailability[] = showsResponse.data.map((show: Show) => {
-            const totalSeats = 40; // Mock total seats
-            const bookedSeats = Math.floor(Math.random() * 35); // Mock booked seats
-            const availableSeats = totalSeats - bookedSeats;
-            
-            let status: ShowWithAvailability['status'] = 'available';
-            if (availableSeats === 0) status = 'sold-out';
-            else if (availableSeats <= 5) status = 'almost-full';
-            else if (availableSeats <= 15) status = 'filling-fast';
-            
-            return {
-              ...show,
-              availableSeats,
-              totalSeats,
-              status
-            };
-          });
-          
-          setShows(showsWithAvailability);
-        } else {
-          // Fetch all shows for all movies
-          const showsResponse = await showsAPI.getAll();
-          
-          // Add mock availability data and fetch movie data for each show
-          const showsWithAvailability: ShowWithAvailability[] = await Promise.all(
-            showsResponse.data.map(async (show: Show) => {
-              const totalSeats = 40; // Mock total seats
-              const bookedSeats = Math.floor(Math.random() * 35); // Mock booked seats
-              const availableSeats = totalSeats - bookedSeats;
-              
-              let status: ShowWithAvailability['status'] = 'available';
-              if (availableSeats === 0) status = 'sold-out';
-              else if (availableSeats <= 5) status = 'almost-full';
-              else if (availableSeats <= 15) status = 'filling-fast';
-              
-              // Fetch movie data for this show
-              let movieData: Movie | null = null;
-              try {
-                const movieResponse = await moviesAPI.getById(show.movie_id.toString());
-                movieData = movieResponse.data;
-              } catch (err) {
-                console.error('Error fetching movie data:', err);
-              }
-              
-              return {
-                ...show,
-                availableSeats,
-                totalSeats,
-                status,
-                movie: movieData
-              };
-            })
-          );
-          
-          setShows(showsWithAvailability);
-        }
-      } catch (err) {
-        setError('Failed to load showtimes. Please try again.');
-        console.error('Error fetching showtimes:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    let active = true;
+    setLoading(true);
+    setError('');
+    Promise.all([moviesAPI.getAll(), showsAPI.getAll()])
+      .then(([movieResponse, showResponse]) => {
+        if (!active) return;
+        const moviePayload = listFrom<Movie>(movieResponse.data);
+        const showPayload = listFrom<Show>(showResponse.data);
+        setMovies(moviePayload);
+        const movieMap = new Map(moviePayload.map((movie) => [Number(movie.id), movie]));
+        setShows(showPayload.map((show) => ({ ...show, movie: movieMap.get(Number(show.movie_id)) })));
+      })
+      .catch((reason: unknown) => {
+        console.error('Unable to load showtimes:', reason);
+        if (active) setError('We could not load the show schedule. Please try again.');
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [retry]);
 
-    fetchData();
-  }, [movieId]);
+  const selectedMovie = movies.find((movie) => String(movie.id) === movieId);
+  const now = Date.now();
+  const upcomingShows = useMemo(() => {
+    return shows
+      .filter((show) => !movieId || String(show.movie_id) === movieId)
+      .filter((show) => new Date(show.show_time).getTime() >= now)
+      .filter((show) => selectedDate === 'all' || dateKey(show.show_time) === selectedDate)
+      .filter((show) => screenFilter === 'all' || show.screen === screenFilter)
+      .sort((a, b) => new Date(a.show_time).getTime() - new Date(b.show_time).getTime());
+  }, [shows, movieId, selectedDate, screenFilter, now]);
 
-  // Group shows by date
-  const groupedShows = shows.reduce((acc, show) => {
-    const date = new Date(show.show_time).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+  const screens = Array.from(new Set(shows.filter((show) => new Date(show.show_time).getTime() >= now).map((show) => show.screen).filter(Boolean))).sort();
+  const today = dateKey(new Date());
+  const tomorrowDate = new Date();
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrow = dateKey(tomorrowDate);
+
+  const groupedShows = useMemo(() => {
+    const groups = new Map<string, ShowWithMovie[]>();
+    upcomingShows.forEach((show) => {
+      const key = dateKey(show.show_time);
+      groups.set(key, [...(groups.get(key) || []), show]);
     });
-    
-    if (!acc[date]) {
-      acc[date] = [];
-    }
-    acc[date].push(show);
-    return acc;
-  }, {} as Record<string, ShowWithAvailability[]>);
-
-  // Sort shows within each date group
-  Object.keys(groupedShows).forEach(date => {
-    groupedShows[date].sort((a, b) => {
-      if (sortBy === 'time') {
-        return new Date(a.show_time).getTime() - new Date(b.show_time).getTime();
-      } else {
-        return a.screen.localeCompare(b.screen);
-      }
-    });
-  });
-
-  // Filter by selected date
-  const filteredGroupedShows = selectedDate 
-    ? Object.fromEntries(
-        Object.entries(groupedShows).filter(() => {
-          const showDate = new Date(Object.values(groupedShows)[0][0]?.show_time || '');
-          const selected = new Date(selectedDate);
-          return showDate.toDateString() === selected.toDateString();
-        })
-      )
-    : groupedShows;
-
-  // Format show time
-  const formatShowTime = (showTime: string) => {
-    return new Date(showTime).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  // Get status badge styling
-  const getStatusBadge = (status: ShowWithAvailability['status']) => {
-    const styles = {
-      'available': 'bg-green-100 text-green-800 border-green-200',
-      'filling-fast': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      'almost-full': 'bg-orange-100 text-orange-800 border-orange-200',
-      'sold-out': 'bg-red-100 text-red-800 border-red-200'
-    };
-    
-    const labels = {
-      'available': 'Available',
-      'filling-fast': 'Filling Fast',
-      'almost-full': 'Almost Full',
-      'sold-out': 'Sold Out'
-    };
-    
-    return { style: styles[status], label: labels[status] };
-  };
-
-  // Get today's date for date picker
-  const today = new Date().toISOString().split('T')[0];
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center">
-        <motion.div 
-          className="text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-6"></div>
-            <motion.div
-              className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-primary/40 rounded-full animate-spin"
-              style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}
-            />
-          </div>
-          <p className="text-muted-foreground text-lg">Loading showtimes...</p>
-        </motion.div>
-      </div>
-    );
-  }
-
-  if (error || (movieId && !movie)) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center">
-        <motion.div 
-          className="text-center bg-card border border-border/50 rounded-2xl p-8 shadow-lg backdrop-blur-sm"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="text-destructive text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-foreground mb-2">Oops! Something went wrong</h2>
-          <p className="text-muted-foreground mb-6">{error || 'Movie not found'}</p>
-        </motion.div>
-      </div>
-    );
-  }
+    return Array.from(groups.entries());
+  }, [upcomingShows]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 mt-16">
-      {/* Enhanced Header with Movie Banner */}
-      <header className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border-b border-border/50">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Enhanced Movie Info */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="flex flex-col md:flex-row gap-6 items-start md:items-center"
-          >
-            {movie ? (
-              <>
-                {/* Enhanced Movie Poster */}
-                <div className="flex-shrink-0">
-                  <div className="relative">
-                    <img
-                      src={movie.poster_url || 'https://via.placeholder.com/120x180/1f2937/ffffff?text=No+Poster'}
-                      alt={movie.title}
-                      className="w-24 h-36 md:w-32 md:h-48 object-cover rounded-2xl shadow-lg border border-border/50"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = 'https://via.placeholder.com/120x180/1f2937/ffffff?text=No+Poster';
-                      }}
-                    />
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/20 to-transparent"></div>
-                  </div>
-                </div>
-
-                {/* Enhanced Movie Details */}
-                <div className="flex-1">
-                  <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
-                    {movie.title}
-                  </h1>
-                  
-                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
-                    {movie.duration && (
-                      <div className="flex items-center gap-2 bg-primary/10 text-primary px-3 py-1.5 rounded-full">
-                        <Clock className="w-4 h-4" />
-                        {Math.floor(movie.duration / 60)}h {movie.duration % 60}m
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2 bg-muted text-muted-foreground px-3 py-1.5 rounded-full">
-                      <Calendar className="w-4 h-4" />
-                      Action • Drama
-                    </div>
-                    <div className="flex items-center gap-2 bg-muted text-muted-foreground px-3 py-1.5 rounded-full">
-                      <MapPin className="w-4 h-4" />
-                      English
-                    </div>
-                  </div>
-
-                  <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
-                    {movie.description || 'No description available.'}
-                  </p>
-                </div>
-              </>
-            ) : (
-              <div className="flex-1">
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
-                  All Showtimes
-                </h1>
-                <p className="text-muted-foreground text-lg">
-                  Browse all available movie showtimes and book your perfect seats
-                </p>
-              </div>
-            )}
-          </motion.div>
-        </div>
-      </header>
-
-      {/* Enhanced Filters */}
-      <section className="relative -mt-4 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            className="backdrop-blur-xl bg-card/80 dark:bg-card/90 border border-border/50 rounded-2xl shadow-soft-dark p-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <div className="flex flex-col sm:flex-row gap-4">
-              {/* Enhanced Date Filter */}
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-foreground mb-2">Filter by Date</label>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  min={today}
-                  aria-label="Select a date to filter showtimes"
-                  className="w-full px-4 py-3 bg-background/50 dark:bg-background/30 border border-border/50 rounded-xl text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 backdrop-blur-sm cursor-pointer"
-                />
-              </div>
-
-              {/* Enhanced Sort */}
-              <div className="sm:w-48">
-                <label className="block text-sm font-medium text-foreground mb-2">Sort by</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as 'time' | 'screen')}
-                  aria-label="Sort showtimes by time or screen"
-                  className="w-full px-4 py-3 bg-background/50 dark:bg-background/30 border border-border/50 rounded-xl text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 backdrop-blur-sm appearance-none cursor-pointer"
-                >
-                  <option value="time">Time</option>
-                  <option value="screen">Screen</option>
-                </select>
-              </div>
+    <div className="min-h-screen bg-background pb-16 pt-28 text-foreground sm:pt-32">
+      <section className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+        <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-orange-500/[0.10] via-card to-amber-500/[0.04] p-6 sm:p-9 lg:p-11">
+          <div aria-hidden="true" className="absolute -right-10 -top-20 h-64 w-64 rounded-full bg-orange-500/10 blur-3xl" />
+          <div className="relative max-w-3xl">
+            {movieId && <button type="button" onClick={() => navigate('/movies')} className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-muted-foreground transition hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Back to movies</button>}
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[.18em] text-primary"><CalendarDays className="h-3.5 w-3.5" /> THE SHOW SCHEDULE</div>
+            <h1 className="text-4xl font-black tracking-tight sm:text-5xl">{selectedMovie ? selectedMovie.title : 'Find your perfect showtime'}</h1>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">{selectedMovie?.description || 'Browse upcoming screenings, compare times and screens, then reserve your seats in a few clicks.'}</p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              <span className="rounded-full border border-border bg-card/80 px-3 py-1.5 text-xs font-bold">{upcomingShows.length} matching showtime(s)</span>
+              <span className="rounded-full border border-border bg-card/80 px-3 py-1.5 text-xs font-bold">Choose your seats</span>
             </div>
-          </motion.div>
+          </div>
         </div>
-      </section>
 
-      {/* Enhanced Showtimes */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {Object.keys(filteredGroupedShows).length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-16"
-          >
-            <div className="bg-card border border-border/50 rounded-2xl p-12 backdrop-blur-sm">
-              <div className="w-16 h-16 bg-muted/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Film className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <h3 className="text-2xl font-semibold text-foreground mb-3">No showtimes found</h3>
-              <p className="text-muted-foreground text-lg">Try selecting a different date or check back later</p>
-            </div>
-          </motion.div>
+        <div className="mt-7 flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap gap-2">
+            {[{value:'all',label:'All dates'},{value:today,label:'Today'},{value:tomorrow,label:'Tomorrow'}].map((option) => (
+              <button type="button" key={option.value} onClick={() => setSelectedDate(option.value)} className={'rounded-full border px-4 py-2 text-xs font-bold transition ' + (selectedDate === option.value ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background text-muted-foreground hover:text-foreground')}>{option.label}</button>
+            ))}
+            <label className="flex h-9 items-center gap-2 rounded-full border border-border bg-background px-3 text-xs font-bold text-muted-foreground">
+              <CalendarDays className="h-3.5 w-3.5" />
+              <input type="date" min={today} value={selectedDate === 'all' ? '' : selectedDate} onChange={(event) => setSelectedDate(event.target.value || 'all')} className="max-w-[8.5rem] bg-transparent text-xs text-foreground outline-none" aria-label="Choose a show date" />
+            </label>
+          </div>
+          <label className="flex h-10 items-center gap-2 rounded-xl border border-input bg-background px-3 text-sm"><Search className="h-4 w-4 text-muted-foreground" /><span className="text-xs font-bold text-muted-foreground">Screen</span><select value={screenFilter} onChange={(event) => setScreenFilter(event.target.value)} className="bg-transparent text-sm font-bold outline-none [&>option]:bg-background" aria-label="Filter by screen"><option value="all">All screens</option>{screens.map((screen) => <option key={screen} value={screen}>{screen}</option>)}</select></label>
+        </div>
+
+        {loading ? (
+          <div className="mt-8 grid gap-4 md:grid-cols-2">{[0,1,2,3].map((item) => <div key={item} className="flex animate-pulse gap-4 rounded-2xl border border-border bg-card p-4"><div className="h-36 w-24 rounded-xl bg-muted" /><div className="flex-1 py-2"><div className="h-4 w-3/4 rounded bg-muted" /><div className="mt-4 h-3 w-1/2 rounded bg-muted" /><div className="mt-8 h-9 w-1/2 rounded bg-muted" /></div></div>)}</div>
+        ) : error ? (
+          <div className="mt-8 rounded-2xl border border-border bg-card px-6 py-14 text-center"><CalendarDays className="mx-auto h-9 w-9 text-primary" /><h2 className="mt-4 text-xl font-extrabold">Showtimes are unavailable</h2><p className="mt-2 text-sm text-muted-foreground">{error}</p><button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-5 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground">Try again</button></div>
+        ) : upcomingShows.length === 0 ? (
+          <div className="mt-8 rounded-2xl border border-border bg-card px-6 py-14 text-center"><CalendarDays className="mx-auto h-9 w-9 text-muted-foreground" /><h2 className="mt-4 text-xl font-extrabold">No showtimes match those filters</h2><p className="mt-2 text-sm text-muted-foreground">{selectedMovie ? 'Try another date or browse the full schedule.' : 'Try another date or screen, or explore the available movies.'}</p><div className="mt-5 flex flex-wrap justify-center gap-3"><button type="button" onClick={() => { setSelectedDate('all'); setScreenFilter('all'); }} className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold">Clear filters</button><Link to="/movies" className="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground">Browse movies</Link></div></div>
         ) : (
-          <div className="space-y-8">
-            {Object.entries(filteredGroupedShows).map(([date, dateShows], dateIndex) => (
-              <motion.div
-                key={date}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: dateIndex * 0.1 }}
-                className="bg-card border border-border/50 rounded-2xl shadow-lg overflow-hidden backdrop-blur-sm"
-              >
-                {/* Enhanced Date Header */}
-                <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-8 py-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary-foreground/20 rounded-xl flex items-center justify-center">
-                      <Calendar className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold">{date}</h2>
-                      <p className="text-primary-foreground/80 text-sm">{dateShows.length} showtime{dateShows.length !== 1 ? 's' : ''} available</p>
-                    </div>
-                  </div>
+          <div className="mt-8 space-y-9">
+            {groupedShows.map(([date, dayShows]) => (
+              <section key={date}>
+                <div className="mb-4 flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><CalendarDays className="h-5 w-5" /></div><div><h2 className="text-lg font-extrabold">{formatLongDate(dayShows[0].show_time)}</h2><p className="mt-0.5 text-xs text-muted-foreground">{dayShows.length} screening(s)</p></div></div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {dayShows.map((show, index) => (
+                    <motion.article key={show.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .25, delay: Math.min(index, 5) * .035 }} className="group flex gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg sm:gap-5 sm:p-5">
+                      <div className="relative h-36 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-900 sm:h-40 sm:w-28">
+                        {show.movie?.poster_url ? <img src={show.movie.poster_url} alt={show.movie.title + ' poster'} loading="lazy" className="h-full w-full object-cover" onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }} /> : <div className="flex h-full items-center justify-center text-white/45"><Film className="h-8 w-8" /></div>}
+                      </div>
+                      <div className="flex min-w-0 flex-1 flex-col">
+                        <p className="line-clamp-2 text-base font-extrabold leading-snug sm:text-lg">{show.movie?.title || 'Movie screening'}</p>
+                        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-2 text-xs font-semibold text-muted-foreground"><span className="inline-flex items-center gap-1.5"><Clock3 className="h-3.5 w-3.5 text-primary" />{formatTime(show.show_time)}</span><span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-primary" />{show.screen || 'Screen TBA'}</span></div>
+                        <p className="mt-1.5 text-xs text-muted-foreground">{formatDate(show.show_time)}</p>
+                        <div className="mt-auto pt-4"><button type="button" onClick={() => navigate('/book/' + show.id)} className="inline-flex items-center gap-2 rounded-xl bg-primary px-3.5 py-2.5 text-xs font-extrabold text-primary-foreground transition hover:brightness-105">Choose seats <Ticket className="h-3.5 w-3.5" /><ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></button></div>
+                      </div>
+                    </motion.article>
+                  ))}
                 </div>
-
-                {/* Enhanced Shows Grid */}
-                <div className="p-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <AnimatePresence>
-                      {dateShows.map((show, showIndex) => {
-                        const { style: statusStyle, label: statusLabel } = getStatusBadge(show.status);
-                        
-                        return (
-                          <motion.div
-                            key={show.id}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            transition={{ duration: 0.3, delay: showIndex * 0.1 }}
-                            whileHover={{ 
-                              y: -4,
-                              transition: { duration: 0.2 }
-                            }}
-                            className="group relative bg-background/50 dark:bg-background/30 rounded-xl p-6 border border-border/50 hover:border-primary/30 transition-all duration-300 backdrop-blur-sm"
-                          >
-                            {/* Enhanced Show Time */}
-                            <div className="text-center mb-4">
-                              <div className="text-3xl font-bold text-foreground mb-1">
-                                {formatShowTime(show.show_time)}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                {new Date(show.show_time).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric'
-                                })}
-                              </div>
-                            </div>
-
-                            {/* Show Movie Info when displaying all showtimes */}
-                            {!movieId && show.movie && (
-                              <div className="text-center mb-4">
-                                <div className="flex items-center justify-center gap-3 mb-2">
-                                  <img
-                                    src={show.movie.poster_url || 'https://via.placeholder.com/40x60/1f2937/ffffff?text=No+Poster'}
-                                    alt={show.movie.title}
-                                    className="w-10 h-15 object-cover rounded-lg shadow-sm"
-                                    onError={(e) => {
-                                      const target = e.target as HTMLImageElement;
-                                      target.src = 'https://via.placeholder.com/40x60/1f2937/ffffff?text=No+Poster';
-                                    }}
-                                  />
-                                  <div className="text-left">
-                                    <h3 className="text-sm font-semibold text-foreground line-clamp-1">
-                                      {show.movie.title}
-                                    </h3>
-                                    {show.movie.duration && (
-                                      <p className="text-xs text-muted-foreground">
-                                        {Math.floor(show.movie.duration / 60)}h {show.movie.duration % 60}m
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Enhanced Screen Info */}
-                            <div className="text-center mb-4">
-                              <div className="text-sm font-medium text-foreground bg-muted/50 px-3 py-1.5 rounded-full inline-block">
-                                Screen {show.screen}
-                              </div>
-                            </div>
-
-                            {/* Enhanced Availability */}
-                            <div className="text-center mb-6">
-                              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-3">
-                                <Users className="w-4 h-4" />
-                                {show.availableSeats} of {show.totalSeats} seats available
-                              </div>
-                              
-                              {/* Enhanced Status Badge */}
-                              <span className={`inline-block px-3 py-1.5 rounded-full text-xs font-medium border ${statusStyle}`}>
-                                {statusLabel}
-                              </span>
-                            </div>
-
-                            {/* Enhanced CTA Button */}
-                            <motion.button
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              disabled={show.status === 'sold-out'}
-                              onClick={() => navigate(`/book/${show.id}`)}
-                              className={`w-full py-3 px-4 rounded-xl font-medium transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-offset-background ${
-                                show.status === 'sold-out'
-                                  ? 'bg-muted text-muted-foreground cursor-not-allowed focus:ring-muted'
-                                  : 'bg-primary hover:bg-primary/90 text-primary-foreground focus:ring-primary'
-                              }`}
-                            >
-                              {show.status === 'sold-out' ? 'Sold Out' : 'Select Seats'}
-                            </motion.button>
-
-                            {/* Enhanced hover effect border */}
-                            <div className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-primary/20 transition-colors duration-300 pointer-events-none" />
-                          </motion.div>
-                        );
-                      })}
-                    </AnimatePresence>
-                  </div>
-                </div>
-              </motion.div>
+              </section>
             ))}
           </div>
         )}
+
+        <div className="mt-12 flex flex-col gap-4 rounded-2xl border border-primary/15 bg-primary/[0.06] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+          <div className="flex items-start gap-3"><Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" /><div><h3 className="font-extrabold">Need help picking a movie?</h3><p className="mt-1 text-sm text-muted-foreground">Tell Movie Muse what mood you’re in and get a personalised shortlist.</p></div></div>
+          <Link to="/discover" className="inline-flex shrink-0 items-center gap-2 text-sm font-extrabold text-primary hover:underline">AI Discover <ArrowRight className="h-4 w-4" /></Link>
+        </div>
       </section>
     </div>
   );
 };
 
-export default Showtimes; 
+export default Showtimes;
