@@ -1,9 +1,17 @@
 import axios from 'axios';
 
-// Always ensure /api is included in the base URL, even if VITE_API_URL does not end with /api
-const API_BASE_URL = ((import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/?$/, '')) + '/api';
+// A base URL may be configured either as an origin or with /api already appended.
+// Normalize it once so requests always target exactly one /api prefix.
+const defaultApiUrl = import.meta.env.DEV
+  ? 'http://localhost:3001'
+  : 'https://moviebook-backend-service.onrender.com';
 
-console.log('API Base URL:', API_BASE_URL); // Debug log
+const API_ORIGIN = (import.meta.env.VITE_API_URL || defaultApiUrl)
+  .trim()
+  .replace(/\/+$/, '')
+  .replace(/\/api$/, '');
+
+const API_BASE_URL = API_ORIGIN + '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -12,18 +20,16 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token.
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = 'Bearer ' + token;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Auth API
@@ -40,29 +46,29 @@ export const authAPI = {
 // Movies API
 export const moviesAPI = {
   getAll: () => api.get('/movies'),
-  getById: (id: string) => api.get(`/movies/${id}`),
+  getById: (id: string) => api.get('/movies/' + id),
   create: (data: { title: string; description: string; poster_url?: string; duration?: number }) =>
     api.post('/movies', data),
-  update: (id: string, data: { title?: string; description?: string; poster_url?: string; duration?: number }) => 
-    api.put(`/movies/${id}`, data),
-  delete: (id: string) => api.delete(`/movies/${id}`),
+  update: (id: string, data: { title?: string; description?: string; poster_url?: string; duration?: number }) =>
+    api.put('/movies/' + id, data),
+  delete: (id: string) => api.delete('/movies/' + id),
 };
 
 // Shows API
 export const showsAPI = {
   getAll: () => api.get('/shows/movie/all'),
-  getByMovie: (movieId: string) => api.get(`/shows/movie/${movieId}`),
-  getById: (id: string) => api.get(`/shows/${id}`),
+  getByMovie: (movieId: string) => api.get('/shows/movie/' + movieId),
+  getById: (id: string) => api.get('/shows/' + id),
   create: (data: { movie_id: number; show_time: string; screen: string }) =>
     api.post('/shows', data),
-  update: (id: string, data: { movie_id?: number; show_time?: string; screen?: string }) => 
-    api.put(`/shows/${id}`, data),
-  delete: (id: string) => api.delete(`/shows/${id}`),
+  update: (id: string, data: { movie_id?: number; show_time?: string; screen?: string }) =>
+    api.put('/shows/' + id, data),
+  delete: (id: string) => api.delete('/shows/' + id),
 };
 
 // Seats API
 export const seatsAPI = {
-  getByShow: (showId: string) => api.get(`/seats/show/${showId}`),
+  getByShow: (showId: string) => api.get('/seats/show/' + showId),
   select: (data: { showId: string; seatNumber: string }) =>
     api.post('/seats/select', data),
   deselect: (data: { showId: string; seatNumber: string }) =>
@@ -80,7 +86,7 @@ export const bookingsAPI = {
     api.post('/bookings/create-order', data),
   confirm: (data: { showId: string; seatNumbers: string[]; paymentId: string; orderId: string }) =>
     api.post('/bookings/confirm', data),
-  cancel: (bookingId: string) => api.post(`/bookings/${bookingId}/cancel`),
+  cancel: (bookingId: string) => api.post('/bookings/' + bookingId + '/cancel'),
 };
 
 // Admin API
@@ -88,8 +94,8 @@ export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
   getAllUsers: () => api.get('/admin/users'),
   updateUserRole: (userId: string, role: string) =>
-    api.put(`/admin/users/${userId}/role`, { role }),
-  deleteUser: (userId: string) => api.delete(`/admin/users/${userId}`),
+    api.put('/admin/users/' + userId + '/role', { role }),
+  deleteUser: (userId: string) => api.delete('/admin/users/' + userId),
 };
 
 // Payment API
