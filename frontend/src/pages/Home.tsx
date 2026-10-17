@@ -1,17 +1,72 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Filter, Calendar, ChevronLeft, ChevronRight, Play, Clock, Sparkles, Zap, Shield } from 'lucide-react';
+import {
+  ArrowRight,
+  Check,
+  ChevronRight,
+  Clapperboard,
+  Clock3,
+  Film,
+  Popcorn,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Ticket,
+  X,
+} from 'lucide-react';
 import { moviesAPI } from '../services/api';
 
 interface Movie {
   id: number;
   title: string;
-  description: string;
+  description?: string;
   poster_url?: string;
   duration?: number;
-  created_at: string;
+  created_at?: string;
 }
+
+type SortOption = 'newest' | 'title' | 'runtime';
+
+const formatDuration = (minutes?: number) => {
+  if (!minutes || minutes <= 0) return 'Runtime unavailable';
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return hours ? hours + 'h ' + (remainingMinutes ? remainingMinutes + 'm' : '') : remainingMinutes + ' min';
+};
+
+const MoviePoster: React.FC<{ movie: Movie; eager?: boolean; className?: string }> = ({
+  movie,
+  eager = false,
+  className = '',
+}) => {
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => setFailed(false), [movie.poster_url]);
+
+  return (
+    <div className={'relative isolate h-full w-full overflow-hidden bg-[#181923] ' + className}>
+      {movie.poster_url && !failed ? (
+        <img
+          src={movie.poster_url}
+          alt={movie.title + ' poster'}
+          loading={eager ? 'eager' : 'lazy'}
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.045]"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(ellipse_at_25%_15%,rgba(250,111,76,0.24),transparent_42%),linear-gradient(145deg,#292b3c,#101117_72%)]">
+          <div className="flex flex-col items-center gap-3 text-white/35">
+            <Clapperboard className="h-10 w-10" strokeWidth={1.2} />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.32em]">MovieBook</span>
+          </div>
+        </div>
+      )}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-black/10" />
+    </div>
+  );
+};
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -19,573 +74,328 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [genre, setGenre] = useState('All');
-  const [language, setLanguage] = useState('All');
-  const [date, setDate] = useState('');
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [retryKey, setRetryKey] = useState(0);
 
-  // Fetch movies from API
   useEffect(() => {
-    const fetchMovies = async () => {
-      try {
-        setLoading(true);
-        const response = await moviesAPI.getAll();
-        setMovies(response.data);
-      } catch (err) {
-        console.error('Error fetching movies:', err);
-        setError('Failed to load movies. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
+    let active = true;
+    setLoading(true);
+    setError(null);
 
-    fetchMovies();
-  }, []);
-
-  // Get unique genres and languages from movies
-  const genres = ['All', ...Array.from(new Set(movies.map(movie => movie.description?.split(' ')[0] || 'Other').filter(Boolean)))];
-  const languages = ['All', ...Array.from(new Set(movies.map(movie => movie.description?.split(' ').slice(-1)[0] || 'Other').filter(Boolean)))];
-
-  // Filtered movies
-  const filteredMovies = movies.filter((movie) => {
-    const matchesSearch = movie.title.toLowerCase().includes(search.toLowerCase()) ||
-                         movie.description?.toLowerCase().includes(search.toLowerCase());
-    const movieGenre = movie.description?.split(' ')[0] || 'Other';
-    const movieLanguage = movie.description?.split(' ').slice(-1)[0] || 'Other';
-    const matchesGenre = genre === 'All' || movieGenre === genre;
-    const matchesLanguage = language === 'All' || movieLanguage === language;
-    return matchesSearch && matchesGenre && matchesLanguage;
-  });
-
-  // Scroll Now Showing horizontally
-  const scrollNowShowing = (dir: 'left' | 'right') => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({
-        left: dir === 'left' ? -320 : 320,
-        behavior: 'smooth',
+    moviesAPI.getAll()
+      .then((response) => {
+        if (!active) return;
+        const payload = response.data;
+        const results = Array.isArray(payload) ? payload : Array.isArray(payload?.movies) ? payload.movies : [];
+        setMovies(results);
+      })
+      .catch((reason: unknown) => {
+        console.error('Unable to load the movie catalogue:', reason);
+        if (active) setError('We could not reach the movie catalogue. Check your connection and try again.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
       });
-    }
-  };
 
-  // Format duration
-  const formatDuration = (minutes?: number) => {
-    if (!minutes) return 'N/A';
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
-  };
+    return () => {
+      active = false;
+    };
+  }, [retryKey]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center">
-        <motion.div 
-          className="text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-6"></div>
-            <motion.div
-              className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-primary/40 rounded-full animate-spin"
-              style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}
-            />
-          </div>
-          <p className="text-muted-foreground text-lg">Loading movies...</p>
-        </motion.div>
-      </div>
-    );
-  }
+  const filteredMovies = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase();
+    const result = movies.filter((movie) => {
+      const title = movie.title || '';
+      const description = movie.description || '';
+      return (title + ' ' + description).toLocaleLowerCase().includes(query);
+    });
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20 flex items-center justify-center">
-        <motion.div 
-          className="text-center bg-card border border-border/50 rounded-2xl p-8 shadow-lg backdrop-blur-sm"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="text-destructive text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-foreground mb-2">Oops! Something went wrong</h2>
-          <p className="text-muted-foreground mb-6">{error}</p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => window.location.reload()}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-xl font-medium transition-colors duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
-          >
-            Try Again
-          </motion.button>
-        </motion.div>
-      </div>
-    );
-  }
+    return result.sort((a, b) => {
+      if (sortBy === 'title') return (a.title || '').localeCompare(b.title || '');
+      if (sortBy === 'runtime') return (b.duration || 0) - (a.duration || 0);
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    });
+  }, [movies, search, sortBy]);
+
+  const heroMovies = movies.length
+    ? [movies[1] || movies[0], movies[0], movies[2] || movies[1] || movies[0]]
+    : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        {/* Enhanced background with animated gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-accent/20 dark:from-primary/30 dark:via-primary/20 dark:to-accent/30"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-background/20"></div>
-        
-        {/* Enhanced animated background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <motion.div 
-            className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl"
-            animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.6, 0.3]
-            }}
-            transition={{ 
-              duration: 4,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-          <motion.div 
-            className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent/20 rounded-full blur-3xl"
-            animate={{ 
-              scale: [1.2, 1, 1.2],
-              opacity: [0.4, 0.7, 0.4]
-            }}
-            transition={{ 
-              duration: 5,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 1
-            }}
-          />
+    <div className="min-h-screen overflow-hidden bg-[#090a0f] text-white selection:bg-orange-400/30 selection:text-white">
+      <section className="relative isolate pt-28 sm:pt-32 lg:pt-36">
+        <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute -right-40 -top-20 h-[34rem] w-[34rem] rounded-full bg-orange-500/[0.10] blur-[120px]" />
+          <div className="absolute -left-40 top-56 h-[26rem] w-[26rem] rounded-full bg-violet-600/[0.09] blur-[110px]" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:linear-gradient(to_bottom,black,transparent_88%)]" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 md:py-32 lg:py-40">
+        <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 pb-20 sm:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:gap-10 lg:px-10 lg:pb-28">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
+            transition={{ duration: 0.65, ease: 'easeOut' }}
+            className="relative z-10"
           >
-            <motion.div
-              initial={{ scale: 0.8, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ duration: 0.8, delay: 0.2, type: "spring", stiffness: 200 }}
-              className="inline-block mb-8"
-            >
-              <div className="relative">
-                <div className="w-24 h-24 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-primary/25">
-                  <Play className="w-12 h-12 text-primary-foreground ml-1" fill="currentColor" />
-                </div>
-                <motion.div
-                  className="absolute -inset-2 bg-gradient-to-br from-primary/30 to-accent/30 rounded-full blur-xl"
-                  animate={{ 
-                    scale: [1, 1.2, 1],
-                    opacity: [0.5, 0.8, 0.5]
-                  }}
-                  transition={{ 
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                />
-              </div>
-            </motion.div>
+            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-orange-300/20 bg-orange-300/[0.07] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-orange-200 sm:text-xs">
+              <Sparkles className="h-3.5 w-3.5" />
+              Your night, your story
+            </div>
 
-            <motion.h1 
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-foreground leading-tight"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              Experience
-              <span className="block bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
-                Cinema Magic
+            <h1 className="max-w-3xl text-[2.8rem] font-semibold leading-[1.02] tracking-[-0.055em] sm:text-6xl lg:text-[4.6rem] xl:text-[5.15rem]">
+              Great stories.
+              <span className="mt-2 block bg-gradient-to-r from-orange-200 via-orange-400 to-rose-400 bg-clip-text pb-2 text-transparent">
+                Bigger screens.
               </span>
-            </motion.h1>
-            
-            <motion.p 
-              className="text-lg sm:text-xl md:text-2xl mb-10 text-muted-foreground max-w-3xl mx-auto px-4 leading-relaxed"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-            >
-              Discover the latest blockbusters, reserve your perfect seats, and immerse yourself in the ultimate cinematic experience.
-            </motion.p>
-            
-            <motion.div 
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-            >
-              <motion.button
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
+            </h1>
+
+            <p className="mt-7 max-w-xl text-base leading-7 text-white/60 sm:text-lg sm:leading-8">
+              Find the film you have been waiting for, pick your perfect seats, and make an ordinary evening feel like opening night.
+            </p>
+
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
                 onClick={() => navigate('/movies')}
-                className="group relative px-8 py-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-semibold text-lg shadow-lg shadow-primary/25 transition-all duration-300 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+                className="group inline-flex min-h-13 items-center justify-center gap-3 rounded-xl bg-orange-400 px-6 py-4 text-sm font-bold text-[#15110e] shadow-[0_10px_35px_rgba(249,115,22,0.18)] transition duration-200 hover:-translate-y-0.5 hover:bg-orange-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-300"
               >
-                <span className="relative z-10 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5" />
-                  Browse Movies
-                </span>
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  initial={false}
-                />
-              </motion.button>
-              
-              <motion.button
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
+                Explore movies
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </button>
+              <button
+                type="button"
                 onClick={() => navigate('/showtimes')}
-                className="group relative px-8 py-4 bg-card hover:bg-card/80 text-card-foreground border border-border rounded-xl font-semibold text-lg shadow-lg transition-all duration-300 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+                className="inline-flex min-h-13 items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/[0.045] px-6 py-4 text-sm font-semibold text-white transition hover:border-white/25 hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60"
               >
-                <span className="relative z-10 flex items-center gap-2">
-                  <Zap className="w-5 h-5" />
-                  View Showtimes
-                </span>
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-muted/20 to-secondary/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  initial={false}
-                />
-              </motion.button>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
+                <Ticket className="h-4 w-4 text-orange-300" />
+                See showtimes
+              </button>
+            </div>
 
-      {/* Enhanced Search & Filter Bar */}
-      <section className="relative -mt-8 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            className="backdrop-blur-xl bg-card/80 dark:bg-card/90 border border-border/50 rounded-2xl shadow-soft-dark p-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1 }}
-          >
-            <div className="flex flex-col lg:flex-row items-center gap-4">
-              {/* Enhanced Search Input */}
-              <div className="relative flex-1 w-full group">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
-                <input
-                  type="text"
-                  placeholder="Search movies..."
-                  className="w-full pl-10 pr-4 py-3 bg-background/50 dark:bg-background/30 border border-border/50 rounded-xl text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 backdrop-blur-sm"
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  aria-label="Search movies"
-                />
-              </div>
-
-              {/* Enhanced Filters */}
-              <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-                <div className="relative group">
-                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
-                  <select
-                    className="pl-10 pr-4 py-3 bg-background/50 dark:bg-background/30 border border-border/50 rounded-xl text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 backdrop-blur-sm appearance-none cursor-pointer"
-                    value={genre}
-                    onChange={e => setGenre(e.target.value)}
-                    aria-label="Filter by genre"
-                  >
-                    {genres.map(g => (
-                      <option key={g} value={g}>{g}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="relative group">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
-                  <select
-                    className="pl-10 pr-4 py-3 bg-background/50 dark:bg-background/30 border border-border/50 rounded-xl text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 backdrop-blur-sm appearance-none cursor-pointer"
-                    value={language}
-                    onChange={e => setLanguage(e.target.value)}
-                    aria-label="Filter by language"
-                  >
-                    {languages.map(l => (
-                      <option key={l} value={l}>{l}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <input
-                  type="date"
-                  className="px-4 py-3 bg-background/50 dark:bg-background/30 border border-border/50 rounded-xl text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 backdrop-blur-sm cursor-pointer"
-                  value={date}
-                  onChange={e => setDate(e.target.value)}
-                  aria-label="Filter by date"
-                />
-              </div>
+            <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-xs font-medium text-white/50 sm:text-sm">
+              <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-emerald-300" /> Pick your own seats</span>
+              <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-emerald-300" /> Clear booking steps</span>
             </div>
           </motion.div>
-        </div>
-      </section>
 
-      {/* Enhanced Now Showing Section */}
-      <section className="py-16 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12 gap-4"
+            initial={{ opacity: 0, scale: 0.96, y: 18 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.12, ease: 'easeOut' }}
+            className="relative mx-auto flex h-[22rem] w-full max-w-[36rem] items-center justify-center sm:h-[31rem] lg:h-[36rem]"
+            aria-label="Featured movie posters"
           >
-            <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-3">
-                Now Showing
-              </h2>
-              <p className="text-muted-foreground text-lg">
-                Catch the latest blockbusters on the big screen
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate('/movies')}
-                className="text-primary hover:text-primary/80 font-medium transition-colors duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-lg px-3 py-2"
-              >
-                View All Movies
-              </motion.button>
-              
-              <div className="flex gap-2">
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  aria-label="Scroll left"
-                  className="p-3 rounded-xl bg-card hover:bg-card/80 border border-border/50 transition-all duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
-                  onClick={() => scrollNowShowing('left')}
-                >
-                  <ChevronLeft className="w-5 h-5 text-muted-foreground" />
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  aria-label="Scroll right"
-                  className="p-3 rounded-xl bg-card hover:bg-card/80 border border-border/50 transition-all duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
-                  onClick={() => scrollNowShowing('right')}
-                >
-                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                </motion.button>
-              </div>
-            </div>
-          </motion.div>
+            <div className="absolute h-[19rem] w-[19rem] rounded-full border border-orange-300/10 sm:h-[25rem] sm:w-[25rem]" />
+            <div className="absolute h-[15rem] w-[15rem] rounded-full border border-white/[0.06] sm:h-[20rem] sm:w-[20rem]" />
+            <div className="absolute h-56 w-56 rounded-full bg-orange-500/10 blur-3xl sm:h-72 sm:w-72" />
 
-          <div
-            ref={scrollRef}
-            className="flex gap-6 overflow-x-auto pb-6 hide-scrollbar snap-x snap-mandatory"
-            tabIndex={0}
-            aria-label="Now Showing Movies"
-          >
-            {filteredMovies.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-muted-foreground text-lg py-12 w-full text-center"
-              >
-                No movies found matching your criteria.
-              </motion.div>
+            {heroMovies.length > 0 ? (
+              heroMovies.map((movie, index) => {
+                const positions = [
+                  'left-[7%] top-[17%] rotate-[-11deg] scale-[0.83] opacity-65',
+                  'left-1/2 top-[5%] z-10 -translate-x-1/2 rotate-[2deg] scale-100',
+                  'right-[4%] top-[20%] rotate-[11deg] scale-[0.83] opacity-70',
+                ];
+                return (
+                  <motion.div
+                    key={movie.id + '-' + index}
+                    className={'group absolute h-[16rem] w-[10.7rem] overflow-hidden rounded-2xl border border-white/15 bg-[#171821] shadow-[0_28px_75px_rgba(0,0,0,0.55)] sm:h-[22rem] sm:w-[14.6rem] ' + positions[index]}
+                    animate={index === 1 ? { y: [0, -8, 0] } : { y: [0, index === 0 ? 5 : -4, 0] }}
+                    transition={{ duration: 5 + index, repeat: Infinity, ease: 'easeInOut' }}
+                  >
+                    <MoviePoster movie={movie} eager={index === 1} />
+                    <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4">
+                      <div className="mb-1 text-[9px] font-semibold uppercase tracking-[0.24em] text-orange-200 sm:text-[10px]">Now showing</div>
+                      <div className="line-clamp-2 text-sm font-semibold leading-snug text-white sm:text-base">{movie.title}</div>
+                    </div>
+                  </motion.div>
+                );
+              })
             ) : (
-              filteredMovies.map((movie, idx) => (
+              [0, 1, 2].map((item) => (
                 <motion.div
-                  key={movie.id}
-                  className="min-w-[280px] max-w-xs snap-center"
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: idx * 0.1 }}
-                  viewport={{ once: true }}
+                  key={item}
+                  className={'absolute flex h-[16rem] w-[10.7rem] items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-[radial-gradient(ellipse_at_20%_20%,rgba(251,146,60,0.3),transparent_45%),linear-gradient(145deg,#282a3b,#11121a)] shadow-[0_28px_75px_rgba(0,0,0,0.55)] sm:h-[22rem] sm:w-[14.6rem] ' + ['left-[7%] top-[17%] rotate-[-11deg] scale-[0.83] opacity-65', 'left-1/2 top-[5%] z-10 -translate-x-1/2 rotate-[2deg]', 'right-[4%] top-[20%] rotate-[11deg] scale-[0.83] opacity-70'][item]}
                 >
-                  <div className="group relative overflow-hidden bg-card border border-border/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                    {/* Enhanced Movie Poster */}
-                    <div className="relative aspect-[2/3] overflow-hidden rounded-t-2xl">
-                      <img
-                        src={movie.poster_url || 'https://via.placeholder.com/300x450/1f2937/ffffff?text=No+Poster'}
-                        alt={movie.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = 'https://via.placeholder.com/300x450/1f2937/ffffff?text=No+Poster';
-                        }}
-                      />
-                      
-                      {/* Enhanced overlay with gradient */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      
-                      {/* Enhanced Play button overlay */}
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <motion.div 
-                          className="w-16 h-16 bg-primary rounded-full flex items-center justify-center shadow-2xl"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <Play className="w-8 h-8 text-primary-foreground ml-1" fill="currentColor" />
-                        </motion.div>
-                      </div>
-
-                      {/* Enhanced Duration badge */}
-                      <div className="absolute top-3 right-3 backdrop-blur-md bg-white/20 dark:bg-black/40 border border-white/30 dark:border-white/10 px-3 py-1.5 rounded-full flex items-center space-x-1">
-                        <Clock className="w-3 h-3 text-white" />
-                        <span className="text-xs text-white font-medium">
-                          {formatDuration(movie.duration)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Enhanced Movie Info */}
-                    <div className="p-5">
-                      <h3 className="text-lg font-bold text-foreground mb-3 line-clamp-1 group-hover:text-primary transition-colors duration-200">
-                        {movie.title}
-                      </h3>
-                      
-                      <div className="flex items-center gap-2 mb-4">
-                        <span className="text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-full font-medium">
-                          {movie.description?.split(' ')[0] || 'Movie'}
-                        </span>
-                        <span className="text-xs bg-muted text-muted-foreground px-3 py-1.5 rounded-full font-medium">
-                          {movie.description?.split(' ').slice(-1)[0] || 'English'}
-                        </span>
-                      </div>
-                      
-                      {/* Enhanced Action Button */}
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => navigate(`/showtimes/${movie.id}`)}
-                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-center text-sm py-2.5 rounded-lg font-medium transition-colors duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card"
-                      >
-                        Book Now
-                      </motion.button>
-                    </div>
-
-                    {/* Enhanced hover effect border */}
-                    <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-primary/30 transition-colors duration-300 pointer-events-none" />
+                  <div className="flex flex-col items-center gap-3 text-white/40">
+                    {item === 1 ? <Clapperboard className="h-12 w-12" strokeWidth={1.2} /> : <Film className="h-10 w-10" strokeWidth={1.2} />}
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.28em]">MovieBook</span>
                   </div>
                 </motion.div>
               ))
             )}
-          </div>
-        </div>
-      </section>
 
-      {/* Enhanced Why Choose Us Section */}
-      <section className="py-16 sm:py-20 bg-muted/30 dark:bg-muted/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-              Why Choose MovieBook?
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Experience the future of movie booking with our cutting-edge platform
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Sparkles,
-                title: 'Latest Movies',
-                description: 'Access to the newest releases and classic favorites with real-time updates'
-              },
-              {
-                icon: Shield,
-                title: 'Smart Seating',
-                description: 'Interactive seat selection with real-time availability and instant confirmation'
-              },
-              {
-                icon: Zap,
-                title: 'Secure Payments',
-                description: 'Safe and convenient payment options with industry-standard encryption'
-              }
-            ].map((feature, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: idx * 0.2 }}
-                viewport={{ once: true }}
-                className="group relative"
-              >
-                <div className="relative bg-card border border-border/50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:scale-105">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="relative z-10 text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 text-primary rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <feature.icon className="w-8 h-8" />
-                    </div>
-                    <h3 className="text-xl font-bold text-foreground mb-3">
-                      {feature.title}
-                    </h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Enhanced Footer */}
-      <footer className="bg-card border-t border-border/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">MovieBook</h3>
-              <p className="text-muted-foreground">
-                Your ultimate destination for movie booking and entertainment.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-foreground">Quick Links</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors duration-200">Movies</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors duration-200">Showtimes</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors duration-200">My Bookings</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-foreground">Support</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors duration-200">Help Center</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors duration-200">Contact Us</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors duration-200">Privacy Policy</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-foreground">Follow Us</h4>
-              <div className="flex space-x-4">
-                <a href="#" aria-label="Twitter" className="hover:text-primary transition-colors duration-200">
-                  <svg fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5">
-                    <path d="M24 4.557a9.93 9.93 0 0 1-2.828.775 4.932 4.932 0 0 0 2.165-2.164c-.951.555-2.197.959-3.427 1.184-.896-.959-2.173-1.559-3.591-1.559-2.717 0-4.92 2.203-4.92 4.917 0 .39.045.765.127 1.124C7.691 8.094 4.066 6.13 1.64 3.161c-.427.722-.666 1.561-.666 2.475 0 1.71.87 3.213 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.061c0 2.385 1.693 4.374 3.946 4.827-.413.111-.849.171-1.296.171-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.604 3.417-1.68 1.319-3.809 2.105-6.102 2.105-.39 0-.779-.023-1.17-.067 2.189 1.394 4.768 2.209 7.557 2.209 9.054 0 14-7.503 14-14 0-.21-.005-.42-.014-.63.961-.689 1.8-1.56 2.46-2.548l-.047-.02z"/>
-                  </svg>
-                </a>
-                <a href="#" aria-label="Facebook" className="hover:text-primary transition-colors duration-200">
-                  <svg fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5">
-                    <path d="M22.675 0h-21.35C.595 0 0 .592 0 1.326v21.348C0 23.408.595 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.592 1.323-1.326V1.326C24 .592 23.405 0 22.675 0z"/>
-                  </svg>
-                </a>
-                <a href="#" aria-label="Instagram" className="hover:text-primary transition-colors duration-200">
-                  <svg fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.334 3.85.77 1.266.456 2.35 1.08 3.434 2.164 1.084 1.084 1.708 2.168 2.164 3.434.436 1.217.708 2.484.77 3.85.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.062 1.366-.334 2.633-.77 3.85-.456 1.266-1.08 2.35-2.164 3.434-1.084 1.084-2.168 1.708-3.434 2.164-1.217.436-2.484.708-3.85.77-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.334-3.85-.77-1.266-.456-2.35-1.08-3.434-2.164-1.084-1.084-1.708-2.168-2.164-3.434-.436-1.217-.708-2.484-.77-3.85-.058-1.266-.07-1.646-.07-4.85s.012-3.584.07-4.85c.062-1.366.334-2.633.77-3.85.456-1.266 1.08-2.35 2.164-3.434 1.084-1.084 2.168-1.708 3.434-2.164 1.217-.436 2.484-.708 3.85-.77 1.266-.058 1.646-.07 4.85-.07zm0-2.163C8.741 0 8.332.013 7.052.072 5.771.131 4.653.363 3.678.678c-.975.315-1.797.74-2.62 1.563C.74 3.063.315 3.885 0 4.86c-.315.975-.547 2.093-.606 3.374C-.013 8.332 0 8.741 0 12c0 3.259.013 3.668.072 4.948.059 1.281.291 2.399.606 3.374.315.975.74 1.797 1.563 2.62.823.823 1.645 1.248 2.62 1.563.975.315 2.093.547 3.374.606C8.332 23.987 8.741 24 12 24s3.668-.013 4.948-.072c1.281-.059 2.399-.291 3.374-.606.975-.315 1.797-.74 2.62-1.563.823-.823 1.248-1.645 1.563-2.62.315-.975.547-2.093.606-3.374.059-1.28.072-1.689.072-4.948 0-3.259-.013-3.668-.072-4.948-.059-1.281-.291-2.399-.606-3.374-.315-.975-.74-1.797-1.563-2.62C21.797.74 20.975.315 20 .001c-.975-.315-2.093-.547-3.374-.606C15.668.013 15.259 0 12 0z"/>
-                  </svg>
-                </a>
+            <div className="absolute bottom-2 right-2 z-20 flex items-center gap-3 rounded-2xl border border-white/10 bg-[#15161e]/90 px-4 py-3 shadow-xl backdrop-blur-xl sm:bottom-5 sm:right-0">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-400/10 text-emerald-300">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-white">Book with confidence</p>
+                <p className="mt-0.5 text-[11px] text-white/45">A smoother way to movie night</p>
               </div>
             </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <section className="border-y border-white/[0.07] bg-white/[0.025]">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-5 px-5 py-6 sm:grid-cols-3 sm:px-8 lg:px-10">
+          <div className="flex items-center gap-3 sm:justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.06] text-orange-300"><Ticket className="h-5 w-5" /></div>
+            <div><p className="text-sm font-semibold text-white">Your seats, your choice</p><p className="mt-1 text-xs text-white/45">Select the spot you love</p></div>
           </div>
-          <div className="border-t border-border/50 mt-8 pt-8 text-center text-muted-foreground">
-            <p>&copy; 2024 MovieBook. All rights reserved.</p>
+          <div className="flex items-center gap-3 sm:justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.06] text-orange-300"><Clock3 className="h-5 w-5" /></div>
+            <div><p className="text-sm font-semibold text-white">Plan in a few clicks</p><p className="mt-1 text-xs text-white/45">Browse titles and showtimes</p></div>
           </div>
+          <div className="flex items-center gap-3 sm:justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.06] text-orange-300"><Popcorn className="h-5 w-5" /></div>
+            <div><p className="text-sm font-semibold text-white">Make it a movie night</p><p className="mt-1 text-xs text-white/45">The best part starts here</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="movies" className="mx-auto max-w-7xl scroll-mt-24 px-5 py-16 sm:px-8 sm:py-20 lg:px-10 lg:py-24">
+        <div className="flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="mb-3 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-orange-300">
+              <span className="h-px w-7 bg-orange-400" /> The collection
+            </div>
+            <h2 className="text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">Find your next favourite</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/50 sm:text-base">A quick look at what is in the catalogue. Search a title, explore the details, and choose a showtime.</p>
+          </div>
+
+          <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+            <label className="relative flex min-w-0 flex-1 items-center sm:min-w-[17rem] lg:w-72 lg:flex-none">
+              <Search className="pointer-events-none absolute left-4 h-4 w-4 text-white/40" />
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search titles..."
+                aria-label="Search movies by title or description"
+                className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.045] pl-11 pr-10 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-orange-300/60 focus:bg-white/[0.065] focus:ring-2 focus:ring-orange-300/15"
+              />
+              {search && (
+                <button type="button" onClick={() => setSearch('')} aria-label="Clear search" className="absolute right-3 rounded-md p-1 text-white/50 transition hover:text-white">
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </label>
+            <label className="flex h-12 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.045] px-4 text-white/55 focus-within:border-orange-300/60">
+              <span className="whitespace-nowrap text-xs">Sort by</span>
+              <select
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value as SortOption)}
+                aria-label="Sort movie catalogue"
+                className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none sm:min-w-[8rem] [&>option]:bg-[#11131a] [&>option]:text-white"
+              >
+                <option value="newest">Recently added</option>
+                <option value="title">Title A–Z</option>
+                <option value="runtime">Longest first</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div className="mt-7 flex items-center justify-between border-b border-white/[0.08] pb-4 text-xs text-white/45">
+          <span>{loading ? 'Updating the collection…' : error ? 'Collection temporarily unavailable' : filteredMovies.length + ' title' + (filteredMovies.length === 1 ? '' : 's') + ' to explore'}</span>
+          <Link to="/movies" className="inline-flex items-center gap-1.5 font-semibold text-orange-300 transition hover:text-orange-200">
+            Full catalogue <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-2 gap-4 pt-7 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
+            {[0, 1, 2, 3, 4].map((item) => (
+              <div key={item} className="animate-pulse">
+                <div className="aspect-[2/3] rounded-2xl bg-white/[0.06]" />
+                <div className="mt-4 h-4 w-3/4 rounded bg-white/[0.07]" />
+                <div className="mt-2 h-3 w-1/2 rounded bg-white/[0.05]" />
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.035] px-6 py-14 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-300/10 text-orange-300"><Film className="h-6 w-6" /></div>
+            <h3 className="mt-5 text-lg font-semibold text-white">The show must go on</h3>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-white/50">{error}</p>
+            <button type="button" onClick={() => setRetryKey((value) => value + 1)} className="mt-6 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-[#11131a] transition hover:bg-orange-200">Try again</button>
+          </div>
+        ) : filteredMovies.length === 0 ? (
+          <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.035] px-6 py-14 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/[0.06] text-white/50"><Search className="h-6 w-6" /></div>
+            <h3 className="mt-5 text-lg font-semibold text-white">{movies.length ? 'No matching titles' : 'The next feature is on its way'}</h3>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-white/50">{movies.length ? 'Try another title or clear your search to see the full collection.' : 'There are no movies in the catalogue yet. Check back soon.'}</p>
+            {search && <button type="button" onClick={() => setSearch('')} className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-orange-300 transition hover:text-orange-200">Clear search <X className="h-4 w-4" /></button>}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-x-4 gap-y-8 pt-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-10 lg:grid-cols-4 lg:gap-x-6 xl:grid-cols-5">
+            {filteredMovies.map((movie, index) => (
+              <motion.article
+                key={movie.id}
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.12 }}
+                transition={{ duration: 0.35, delay: Math.min(index % 5, 4) * 0.05 }}
+                className="group min-w-0"
+              >
+                <button
+                  type="button"
+                  onClick={() => navigate('/showtimes/' + movie.id)}
+                  aria-label={'View showtimes for ' + movie.title}
+                  className="relative block aspect-[2/3] w-full overflow-hidden rounded-2xl border border-white/10 bg-[#171821] text-left shadow-[0_12px_28px_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-1 hover:border-orange-300/40 hover:shadow-[0_22px_44px_rgba(0,0,0,0.38)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-300"
+                >
+                  <MoviePoster movie={movie} />
+                  <div className="absolute left-3 top-3 rounded-lg border border-white/15 bg-black/40 px-2.5 py-1.5 text-[10px] font-medium text-white/90 backdrop-blur-md sm:left-4 sm:top-4">
+                    {formatDuration(movie.duration)}
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4">
+                    <p className="line-clamp-2 text-sm font-semibold leading-snug text-white sm:text-base">{movie.title}</p>
+                    <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-orange-200 sm:text-xs">
+                      Choose a showtime <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                    </p>
+                  </div>
+                </button>
+                {movie.description && (
+                  <p className="mt-3 line-clamp-2 text-xs leading-5 text-white/45 sm:text-sm">{movie.description}</p>
+                )}
+              </motion.article>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-14 flex flex-col items-start justify-between gap-5 rounded-2xl border border-orange-200/15 bg-[radial-gradient(ellipse_at_10%_0%,rgba(251,146,60,0.12),transparent_50%),rgba(255,255,255,0.025)] p-6 sm:flex-row sm:items-center sm:p-8">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-300/10 text-orange-200"><Ticket className="h-5 w-5" /></div>
+            <div>
+              <h3 className="text-base font-semibold text-white sm:text-lg">Ready to settle into your seat?</h3>
+              <p className="mt-1 text-sm leading-6 text-white/50">Browse all movies and find a showtime that works for you.</p>
+            </div>
+          </div>
+          <button type="button" onClick={() => navigate('/showtimes')} className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white transition hover:border-orange-300/40 hover:bg-orange-300/10">
+            Browse showtimes <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+      </section>
+
+      <footer className="border-t border-white/[0.08] bg-[#07080c]">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-8 sm:px-8 md:flex-row md:items-center md:justify-between lg:px-10">
+          <Link to="/" className="inline-flex items-center gap-3" aria-label="MovieBook home">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-400 text-[#15110e]"><Clapperboard className="h-5 w-5" /></span>
+            <span><span className="block text-sm font-semibold tracking-wide text-white">MovieBook</span><span className="mt-0.5 block text-[10px] uppercase tracking-[0.2em] text-white/40">Make it a movie night</span></span>
+          </Link>
+          <div className="flex flex-wrap gap-x-6 gap-y-3 text-xs font-medium text-white/45">
+            <Link to="/movies" className="transition hover:text-white">Movies</Link>
+            <Link to="/showtimes" className="transition hover:text-white">Showtimes</Link>
+            <Link to="/my-bookings" className="transition hover:text-white">My bookings</Link>
+            <Link to="/login" className="transition hover:text-white">Your account</Link>
+          </div>
+          <p className="text-xs text-white/35">© {new Date().getFullYear()} MovieBook. Made for movie lovers.</p>
         </div>
       </footer>
     </div>
   );
 };
 
-export default Home; 
+export default Home;
