@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ArrowRight, Clapperboard, Clock3, Film, Search, Sparkles, Ticket,
-  SunMedium, Popcorn, ShieldCheck, X, ChevronRight,
+  Popcorn, ShieldCheck, X, ChevronRight,
 } from 'lucide-react';
 import { moviesAPI } from '../services/api';
 
