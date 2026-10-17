@@ -82,7 +82,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         description: `Booking ${selectedSeats.length} seat(s)`,
         order_id: orderId,
         handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => {
-          console.log('✅ Payment successful:', response);
+          // Do not log payment signatures or gateway response payloads.
           
           try {
             // Confirm booking
@@ -97,7 +97,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
             console.log('✅ Booking confirmed:', bookingResponse.data);
             onPaymentSuccess(response.razorpay_payment_id, response.razorpay_order_id, bookingResponse.data as Record<string, unknown>);
           } catch (bookingError) {
-            console.error('❌ Booking confirmation failed:', bookingError);
+            console.error('Booking confirmation failed.');
             setError('Payment successful but booking failed. Please contact support.');
             onPaymentFailure();
           }
@@ -127,7 +127,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       razorpay.open();
 
     } catch (error: unknown) {
-      console.error('❌ Payment initialization failed:', error);
+      console.error('Payment initialization failed.');
       const err = error as { message?: string; response?: { data?: { error?: string } } };
       setError(err.response?.data?.error || err.message || 'Failed to initialize payment');
       setLoading(false);
