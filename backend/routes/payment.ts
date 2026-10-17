@@ -35,13 +35,13 @@ router.post(
     }
 
     const heldSeats = await pool.query(
-      \`SELECT seat_number
+      `SELECT seat_number
        FROM seats
        WHERE show_id = $1
          AND seat_number = ANY($2)
          AND locked_by = $3
          AND status = 'locked'
-         AND lock_expires_at > NOW()\`,
+         AND lock_expires_at > NOW()`,
       [Number(showId), selectedSeats, userId]
     );
     if (heldSeats.rows.length !== selectedSeats.length) {
@@ -72,7 +72,9 @@ router.post(
       throw createError("Failed to initialize payment. Please try again.", 502);
     }
   }),
-);// Create Razorpay order
+);
+
+// Create Razorpay order
 router.post(
   "/create-order",
   authenticateToken,
