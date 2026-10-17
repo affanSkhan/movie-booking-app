@@ -90,14 +90,14 @@ router.post("/confirm", authenticateToken, async (req, res) => {
       await client.query("BEGIN");
 
       const seatCheck = await client.query(
-        \`SELECT id, seat_number
+        `SELECT id, seat_number
          FROM seats
          WHERE show_id = $1
            AND seat_number = ANY($2)
            AND locked_by = $3
            AND status = 'locked'
            AND lock_expires_at > NOW()
-         FOR UPDATE\`,
+         FOR UPDATE`,
         [Number(showId), seatNumbers, userId]
       );
 
@@ -108,15 +108,15 @@ router.post("/confirm", authenticateToken, async (req, res) => {
       }
 
       const bookingResult = await client.query(
-        \`INSERT INTO bookings (user_id, show_id, amount, payment_id, order_id, status)
+        `INSERT INTO bookings (user_id, show_id, amount, payment_id, order_id, status)
          VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING *\`,
+         RETURNING *`,
         [userId, Number(showId), seatNumbers.length * 250, paymentId, orderId, "confirmed"]
       );
       booking = bookingResult.rows[0];
 
       const seatUpdate = await client.query(
-        \`UPDATE seats
+        `UPDATE seats
          SET status = 'booked',
              locked_by = NULL,
              locked_at = NULL,
@@ -126,7 +126,7 @@ router.post("/confirm", authenticateToken, async (req, res) => {
            AND locked_by = $3
            AND status = 'locked'
            AND lock_expires_at > NOW()
-         RETURNING id, seat_number\`,
+         RETURNING id, seat_number`,
         [Number(showId), seatNumbers, userId]
       );
 
@@ -152,7 +152,7 @@ router.post("/confirm", authenticateToken, async (req, res) => {
     }
 
     for (const seat of bookedSeats) {
-      io.to(\`show-\${showId}\`).emit("seat-updated", {
+      io.to(`show-${showId}`).emit("seat-updated", {
         seatNumber: seat.seat_number,
         status: "booked",
         userId: null,
