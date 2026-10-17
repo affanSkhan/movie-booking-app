@@ -103,7 +103,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
 
             console.log('✅ Booking confirmed:', bookingResponse.data);
             onPaymentSuccess(response.razorpay_payment_id, response.razorpay_order_id, bookingResponse.data as Record<string, unknown>);
-          } catch (bookingError) {
+          } catch {
             console.error('Booking confirmation failed.');
             setError('Payment successful but booking failed. Please contact support.');
             onPaymentFailure();
