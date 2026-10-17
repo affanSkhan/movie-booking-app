@@ -24,11 +24,24 @@ router.post('/extend-lock', authenticateToken, async (req, res) => {
   try {
     const { showId, seatNumbers, durationMinutes } = req.body;
     const userId = (req.user as { userId: number }).userId;
-    if (!showId || !seatNumbers || !Array.isArray(seatNumbers) || seatNumbers.length === 0) {
-      res.status(400).json({ error: 'showId and seatNumbers are required.' });
+    if (
+      !showId ||
+      !Number.isInteger(Number(showId)) ||
+      !Array.isArray(seatNumbers) ||
+      seatNumbers.length < 1 ||
+      seatNumbers.length > 5 ||
+      seatNumbers.some((seat: unknown) => typeof seat !== 'string' || !/^[A-Z]\d{1,2}$/.test(seat)) ||
+      new Set(seatNumbers).size !== seatNumbers.length
+    ) {
+      res.status(400).json({ error: 'Choose between one and five unique seats for a valid show.' });
       return;
     }
-    const durationMs = (durationMinutes || 10) * 60 * 1000; // default to 10 minutes
+    const requestedDuration = Number(durationMinutes ?? 10);
+    if (!Number.isInteger(requestedDuration) || requestedDuration < 1 || requestedDuration > 10) {
+      res.status(400).json({ error: 'Seat hold duration must be between 1 and 10 minutes.' });
+      return;
+    }
+    const durationMs = requestedDuration * 60 * 1000;
     const result = await seatLockingService.extendLockDurationForSeats(
       seatNumbers,
       showId,
