@@ -419,14 +419,14 @@ class SeatLockingService {
 
         // Lock and validate every requested seat before changing any expiry.
         const seatCheck = await client.query(
-          \`SELECT seat_number
+          `SELECT seat_number
            FROM seats
            WHERE seat_number = ANY($1)
              AND show_id = $2
              AND locked_by = $3
              AND status = 'locked'
              AND lock_expires_at > NOW()
-           FOR UPDATE\`,
+           FOR UPDATE`,
           [uniqueSeatNumbers, showId, userId]
         );
 
@@ -439,14 +439,14 @@ class SeatLockingService {
         }
 
         const updated = await client.query(
-          \`UPDATE seats
+          `UPDATE seats
            SET lock_expires_at = $1
            WHERE seat_number = ANY($2)
              AND show_id = $3
              AND locked_by = $4
              AND status = 'locked'
              AND lock_expires_at > NOW()
-           RETURNING seat_number\`,
+           RETURNING seat_number`,
           [lockExpiresAt, uniqueSeatNumbers, showId, userId]
         );
 
@@ -468,7 +468,7 @@ class SeatLockingService {
 
       // Broadcast the confirmed hold and keep server-side expiry timers aligned.
       for (const seatNumber of uniqueSeatNumbers) {
-        io.to(\`show-\${showId}\`).emit("seat-updated", {
+        io.to(`show-${showId}`).emit("seat-updated", {
           seatNumber,
           status: "locked",
           userId,
@@ -478,9 +478,9 @@ class SeatLockingService {
         this.clearLockTimeout(seatNumber, showId, userId);
         const msUntilExpire = lockExpiresAt.getTime() - Date.now();
         if (msUntilExpire > 0) {
-          const timeoutKey = \`\${seatNumber}-\${showId}-\${userId}\`;
+          const timeoutKey = `${seatNumber}-${showId}-${userId}`;
           const timeout = setTimeout(async () => {
-            console.log(\`⏰ Auto-unlocking seat \${seatNumber} for user \${userId} (extended)\`);
+            console.log(`⏰ Auto-unlocking seat ${seatNumber} for user ${userId} (extended)`);
             await this.unlockSeat(seatNumber, showId, userId, "timeout");
           }, msUntilExpire);
           this.lockTimeouts.set(timeoutKey, timeout);
