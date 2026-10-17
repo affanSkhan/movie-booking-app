@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Armchair, Monitor, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { seatsAPI } from '../services/api';
 import { useSocket } from '../contexts/SocketContextInstance';
@@ -56,6 +56,11 @@ const SeatMap: React.FC<SeatMapProps> = ({
   const { user } = useAuth();
   const [seatUpdates, setSeatUpdates] = useState<Map<string, SeatUpdate>>(new Map());
   const [processingSeats, setProcessingSeats] = useState<Set<string>>(new Set());
+  const selectedSeatsRef = useRef(selectedSeats);
+  const onSeatDeselectRef = useRef(onSeatDeselect);
+
+  useEffect(() => { selectedSeatsRef.current = selectedSeats; }, [selectedSeats]);
+  useEffect(() => { onSeatDeselectRef.current = onSeatDeselect; }, [onSeatDeselect]);
 
   const refreshLatest = useCallback(() => {
     setSeatUpdates(new Map());
@@ -79,22 +84,31 @@ const SeatMap: React.FC<SeatMapProps> = ({
       lockExpiresAt?: string;
     }) => {
       if (!data?.seatNumber || !data?.status) return;
+      const updatedUserId = data.userId == null ? undefined : Number(data.userId);
       setSeatUpdates((current) => {
         const next = new Map(current);
         next.set(data.seatNumber, {
           status: data.status,
-          userId: data.userId == null ? undefined : Number(data.userId),
+          userId: updatedUserId,
           lockExpiresAt: data.lockExpiresAt,
         });
         return next;
       });
+      // If a live event says this hold is gone or belongs to someone else, remove
+      // it from the summary as well as changing the seat's visual state.
+      if (
+        selectedSeatsRef.current.includes(data.seatNumber) &&
+        !(data.status === 'locked' && updatedUserId === Number(user?.id))
+      ) {
+        onSeatDeselectRef.current(data.seatNumber);
+      }
     };
 
     socket.on('seat-updated', handleSeatUpdate);
     return () => {
       socket.off('seat-updated', handleSeatUpdate);
     };
-  }, [socket]);
+  }, [socket, user?.id]);
 
   useEffect(() => {
     if (!socket) return;
@@ -131,13 +145,10 @@ const SeatMap: React.FC<SeatMapProps> = ({
 
   const getSeatState = useCallback((seat: Seat) => {
     const status = getSeatStatus(seat);
-    const ownLock = status === 'locked' && isSeatLockedByCurrentUser(seat);
-    const isSelected = selectedSeats.includes(seat.seat_number) || ownLock;
-    if (isSelected) return 'selected';
     if (status === 'booked') return 'booked';
-    if (status === 'locked') return 'locked';
+    if (status === 'locked') return isSeatLockedByCurrentUser(seat) ? 'selected' : 'locked';
     return 'available';
-  }, [getSeatStatus, isSeatLockedByCurrentUser, selectedSeats]);
+  }, [getSeatStatus, isSeatLockedByCurrentUser]);
 
   const handleSeatClick = async (seat: Seat) => {
     if (!user) {
