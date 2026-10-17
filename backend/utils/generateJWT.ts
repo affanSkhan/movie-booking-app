@@ -6,15 +6,18 @@ interface JWTPayload {
   role: string;
 }
 
+const getJWTSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret.length < 32) {
+    throw new Error("JWT_SECRET must be configured with at least 32 characters");
+  }
+  return secret;
+};
+
 export const generateJWT = (payload: JWTPayload): string => {
-  return jwt.sign(payload, process.env.JWT_SECRET || "your-secret-key", {
-    expiresIn: "24h",
-  });
+  return jwt.sign(payload, getJWTSecret(), { expiresIn: "24h" });
 };
 
 export const verifyJWT = (token: string): JWTPayload => {
-  return jwt.verify(
-    token,
-    process.env.JWT_SECRET || "your-secret-key",
-  ) as JWTPayload;
+  return jwt.verify(token, getJWTSecret()) as JWTPayload;
 };
