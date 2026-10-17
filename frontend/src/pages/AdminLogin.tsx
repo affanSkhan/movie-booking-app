@@ -45,16 +45,16 @@ const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50 dark:bg-gray-900 mt-16">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-background text-foreground mt-16">
       {/* Left Side - Welcome Section */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8 }}
-        className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800 text-white p-8 lg:p-12 flex-col justify-center relative overflow-hidden"
+        className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-orange-500 via-orange-600 to-rose-700 text-white p-8 lg:p-12 flex-col justify-center relative overflow-hidden"
       >
-        <div className="absolute top-0 left-0 w-96 h-96 bg-purple-400 opacity-20 rounded-full blur-3xl -z-10" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-400 opacity-20 rounded-full blur-3xl -z-10" />
+        <div className="absolute top-0 left-0 w-96 h-96 bg-orange-300 opacity-20 rounded-full blur-3xl -z-10" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-rose-300 opacity-20 rounded-full blur-3xl -z-10" />
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -65,7 +65,7 @@ const AdminLogin: React.FC = () => {
             <Crown className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
           </div>
           <h1 className="text-3xl lg:text-4xl font-bold mb-3 lg:mb-4">Admin Dashboard</h1>
-          <p className="text-lg lg:text-xl mb-6 lg:mb-8 text-purple-100">
+          <p className="text-lg lg:text-xl mb-6 lg:mb-8 text-orange-100">
             Access your movie booking system administration panel
           </p>
           <div className="space-y-3 lg:space-y-4">
@@ -73,19 +73,19 @@ const AdminLogin: React.FC = () => {
               <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <Film className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
               </div>
-              <span className="text-sm lg:text-base text-purple-100">Manage movies and shows</span>
+              <span className="text-sm lg:text-base text-orange-100">Manage movies and shows</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <BarChart3 className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
               </div>
-              <span className="text-sm lg:text-base text-purple-100">View booking analytics</span>
+              <span className="text-sm lg:text-base text-orange-100">View booking analytics</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <Settings className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
               </div>
-              <span className="text-sm lg:text-base text-purple-100">System configuration</span>
+              <span className="text-sm lg:text-base text-orange-100">System configuration</span>
             </div>
           </div>
         </motion.div>
@@ -96,32 +96,32 @@ const AdminLogin: React.FC = () => {
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8 }}
-        className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-800"
+        className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-card"
       >
         <div className="w-full max-w-sm sm:max-w-md">
           <div className="lg:hidden text-center mb-6 sm:mb-8">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
               <Crown className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">Admin Dashboard</h1>
-            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Access your administration panel</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Admin Dashboard</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">Access your administration panel</p>
           </div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-200 dark:border-gray-700"
+            className="bg-card rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8 border border-border"
           >
             <div className="text-center mb-6 sm:mb-8">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">Admin Login</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Enter your admin credentials</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Admin Login</h2>
+              <p className="text-muted-foreground text-sm sm:text-base">Enter your admin credentials</p>
             </div>
 
             {/* Google Button Placeholder */}
             <button
               type="button"
-              className="w-full flex items-center justify-center gap-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg py-3 mb-6 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-all font-medium text-gray-700 dark:text-gray-300 text-sm sm:text-base"
+              className="w-full flex items-center justify-center gap-2 bg-card border border-input rounded-lg py-3 mb-6 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-all font-medium text-foreground text-sm sm:text-base"
               disabled
               aria-label="Continue with Google"
             >
@@ -132,12 +132,12 @@ const AdminLogin: React.FC = () => {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
               {/* Email Field */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
                   Admin Email
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                     </svg>
                   </div>
@@ -147,7 +147,7 @@ const AdminLogin: React.FC = () => {
                     autoComplete="email"
                     {...register('email')}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 text-sm sm:text-base ${
-                      errors.email ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 dark:border-gray-600 focus:border-purple-500 focus:ring-purple-500/20 dark:bg-gray-700 dark:text-white'
+                      errors.email ? 'border-red-500 focus:ring-red-200' : 'border-input focus:border-purple-500 focus:ring-primary/20 dark:bg-gray-700 dark:text-white'
                     }`}
                     placeholder="Enter admin email"
                   />
@@ -157,12 +157,12 @@ const AdminLogin: React.FC = () => {
 
               {/* Password Field */}
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
                   Admin Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                   </div>
@@ -172,7 +172,7 @@ const AdminLogin: React.FC = () => {
                     autoComplete="current-password"
                     {...register('password')}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 text-sm sm:text-base ${
-                      errors.password ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 dark:border-gray-600 focus:border-purple-500 focus:ring-purple-500/20 dark:bg-gray-700 dark:text-white'
+                      errors.password ? 'border-red-500 focus:ring-red-200' : 'border-input focus:border-purple-500 focus:ring-primary/20 dark:bg-gray-700 dark:text-white'
                     }`}
                     placeholder="Enter admin password"
                   />
@@ -186,7 +186,7 @@ const AdminLogin: React.FC = () => {
                 disabled={loading}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full bg-purple-600 dark:bg-purple-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-purple-700 dark:hover:bg-purple-600 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 relative overflow-hidden group text-sm sm:text-base"
+                className="w-full bg-primary dark:bg-primary/80 text-white py-3 px-4 rounded-lg font-medium hover:bg-primary/90 dark:hover:bg-primary disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 relative overflow-hidden group text-sm sm:text-base"
               >
                 {loading ? (
                   <div className="flex items-center justify-center">
@@ -196,7 +196,7 @@ const AdminLogin: React.FC = () => {
                 ) : (
                   <>
                     <span className="relative z-10">Sign In as Admin</span>
-                    <span className="absolute inset-0 bg-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
+                    <span className="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
                   </>
                 )}
               </motion.button>
@@ -207,7 +207,7 @@ const AdminLogin: React.FC = () => {
               <div>
                 <Link
                   to="/login"
-                  className="text-sm text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 transition-colors"
+                  className="text-sm text-primary hover:text-primary/80 dark:text-primary dark:hover:text-primary/80 transition-colors"
                 >
                   ← Back to User Login
                 </Link>
@@ -215,7 +215,7 @@ const AdminLogin: React.FC = () => {
               <div>
                 <Link
                   to="/forgot-password"
-                  className="text-sm text-gray-600 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
+                  className="text-sm text-gray-600 hover:text-muted-foreground dark:hover:text-gray-300 transition-colors"
                 >
                   Forgot password?
                 </Link>

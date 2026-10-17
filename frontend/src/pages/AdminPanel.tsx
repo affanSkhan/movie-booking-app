@@ -6,6 +6,7 @@ import { moviesAPI, showsAPI, bookingsAPI } from '../services/api';
 import { BarChart3, Film, Calendar, Ticket, LogOut, Edit, Trash2, X, Save, Sun, Moon } from 'lucide-react';
 import StatsCards from '../components/admin/StatsCards';
 import DashboardCharts from '../components/admin/DashboardCharts';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface Movie {
   id: number;
@@ -96,21 +97,7 @@ const AdminPanel: React.FC = () => {
     title: string;
   }>({ type: null, id: null, title: '' });
 
-  // Dark mode
-  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
-  const toggleDarkMode = () => {
-    setIsDark((prev) => {
-      const next = !prev;
-      if (next) {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-      }
-      return next;
-    });
-  };
+  const { isDark, toggleTheme: toggleDarkMode } = useTheme();
 
   useEffect(() => {
     if (user?.role !== 'admin') {
@@ -124,17 +111,7 @@ const AdminPanel: React.FC = () => {
     return () => clearInterval(interval);
   }, [user, navigate]);
 
-  useEffect(() => {
-    // On mount, respect saved theme
-    const saved = localStorage.getItem('theme');
-    if (saved === 'dark') {
-      document.documentElement.classList.add('dark');
-      setIsDark(true);
-    } else if (saved === 'light') {
-      document.documentElement.classList.remove('dark');
-      setIsDark(false);
-    }
-  }, []);
+
 
   const fetchData = async () => {
     try {
@@ -400,7 +377,7 @@ const AdminPanel: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20">
       {/* Top Navigation */}
-      <nav className="glass border-b border-border/50">
+      <nav className="border-b border-border/70 bg-background/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -540,15 +517,15 @@ const AdminPanel: React.FC = () => {
             className="space-y-6"
           >
             {/* Add Movie Form */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Add New Movie</h3>
+            <div className="bg-card rounded-xl p-6 shadow-lg border border-border">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Add New Movie</h3>
               <form onSubmit={handleAddMovie} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
                   type="text"
                   placeholder="Movie Title"
                   value={newMovie.title}
                   onChange={(e) => setNewMovie({ ...newMovie, title: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="px-3 py-2 border border-input rounded-md bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
                   required
                 />
                 <input
@@ -556,26 +533,26 @@ const AdminPanel: React.FC = () => {
                   placeholder="Poster URL (optional)"
                   value={newMovie.poster_url}
                   onChange={(e) => setNewMovie({ ...newMovie, poster_url: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="px-3 py-2 border border-input rounded-md bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
                 <input
                   type="number"
                   placeholder="Duration in minutes (optional)"
                   value={newMovie.duration}
                   onChange={(e) => setNewMovie({ ...newMovie, duration: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="px-3 py-2 border border-input rounded-md bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
                 <textarea
                   placeholder="Description"
                   value={newMovie.description}
                   onChange={(e) => setNewMovie({ ...newMovie, description: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="px-3 py-2 border border-input rounded-md bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
                   rows={3}
                   required
                 />
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors duration-200"
+                  className="bg-primary text-primary-foreground hover:brightness-95 px-4 py-2 rounded-md transition-colors duration-200"
                 >
                   Add Movie
                 </button>
@@ -583,9 +560,9 @@ const AdminPanel: React.FC = () => {
             </div>
 
             {/* Movies List */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">All Movies ({movies.length})</h3>
+            <div className="bg-card rounded-xl shadow-lg border border-border overflow-hidden">
+              <div className="px-6 py-4 border-b border-border">
+                <h3 className="text-lg font-semibold text-foreground">All Movies ({movies.length})</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -605,10 +582,10 @@ const AdminPanel: React.FC = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  <tbody className="bg-card divide-y divide-gray-200 dark:divide-gray-700">
                     {movies.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                        <td colSpan={4} className="px-6 py-4 text-center text-muted-foreground">
                           No movies found. Add some movies to get started.
                         </td>
                       </tr>
@@ -628,8 +605,8 @@ const AdminPanel: React.FC = () => {
                                 />
                               </div>
                               <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900 dark:text-white">{movie.title}</div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate whitespace-normal break-words" title={movie.description}>
+                                <div className="text-sm font-medium text-foreground">{movie.title}</div>
+                                <div className="text-sm text-muted-foreground max-w-xs truncate whitespace-normal break-words" title={movie.description}>
                                   {movie.description.split(' ').length > 6
                                     ? movie.description.split(' ').slice(0, 6).join(' ') + '...'
                                     : movie.description}
@@ -637,10 +614,10 @@ const AdminPanel: React.FC = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                             {movie.duration ? `${Math.floor(movie.duration / 60)}h ${movie.duration % 60}m` : 'N/A'}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                             {new Date(movie.created_at).toLocaleDateString()}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -684,10 +661,10 @@ const AdminPanel: React.FC = () => {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+                  className="bg-card rounded-xl p-6 shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Edit Movie</h3>
+                    <h3 className="text-lg font-semibold text-foreground">Edit Movie</h3>
                     <button
                       onClick={handleCancelEdit}
                       className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
@@ -698,7 +675,7 @@ const AdminPanel: React.FC = () => {
                   </div>
                   <form onSubmit={handleUpdateMovie} className="space-y-4">
                     <div>
-                      <label htmlFor="edit-title" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+                      <label htmlFor="edit-title" className="block text-sm font-medium text-muted-foreground mb-1">
                         Movie Title
                       </label>
                       <input
@@ -706,25 +683,25 @@ const AdminPanel: React.FC = () => {
                         type="text"
                         value={editMovieForm.title}
                         onChange={(e) => setEditMovieForm({ ...editMovieForm, title: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
                         required
                       />
                     </div>
                     <div>
-                      <label htmlFor="edit-description" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+                      <label htmlFor="edit-description" className="block text-sm font-medium text-muted-foreground mb-1">
                         Description
                       </label>
                       <textarea
                         id="edit-description"
                         value={editMovieForm.description}
                         onChange={(e) => setEditMovieForm({ ...editMovieForm, description: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
                         rows={3}
                         required
                       />
                     </div>
                     <div>
-                      <label htmlFor="edit-poster" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+                      <label htmlFor="edit-poster" className="block text-sm font-medium text-muted-foreground mb-1">
                         Poster URL (optional)
                       </label>
                       <input
@@ -732,11 +709,11 @@ const AdminPanel: React.FC = () => {
                         type="text"
                         value={editMovieForm.poster_url}
                         onChange={(e) => setEditMovieForm({ ...editMovieForm, poster_url: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label htmlFor="edit-duration" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+                      <label htmlFor="edit-duration" className="block text-sm font-medium text-muted-foreground mb-1">
                         Duration in minutes (optional)
                       </label>
                       <input
@@ -744,21 +721,21 @@ const AdminPanel: React.FC = () => {
                         type="number"
                         value={editMovieForm.duration}
                         onChange={(e) => setEditMovieForm({ ...editMovieForm, duration: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                     </div>
                     <div className="flex items-center justify-end space-x-3 pt-4">
                       <button
                         type="button"
                         onClick={handleCancelEdit}
-                        className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
+                        className="px-4 py-2 text-foreground bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={updatingMovie}
-                        className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground hover:brightness-95 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {updatingMovie ? (
                           <>
@@ -789,17 +766,17 @@ const AdminPanel: React.FC = () => {
             className="space-y-6"
           >
             {/* Add Show Form */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Add New Show</h3>
+            <div className="bg-card rounded-xl p-6 shadow-lg border border-border">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Add New Show</h3>
               <form className="space-y-4" onSubmit={handleAddShow}>
                 <div>
-                  <label htmlFor="movie_id" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">Movie</label>
+                  <label htmlFor="movie_id" className="block text-sm font-medium text-muted-foreground mb-1">Movie</label>
                   <select
                     id="movie_id"
                     name="movie_id"
                     value={newShow.movie_id}
                     onChange={(e) => setNewShow({ ...newShow, movie_id: e.target.value })}
-                    className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="block w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
                   >
                     <option value="" disabled>Select a movie</option>
@@ -809,13 +786,13 @@ const AdminPanel: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="show_time" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">Show Time</label>
+                  <label htmlFor="show_time" className="block text-sm font-medium text-muted-foreground mb-1">Show Time</label>
                   <input
                     id="show_time"
                     type="datetime-local"
                     value={newShow.show_time}
                     onChange={(e) => setNewShow({ ...newShow, show_time: e.target.value })}
-                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="px-3 py-2 border border-input rounded-md bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
                   />
                 </div>
@@ -824,12 +801,12 @@ const AdminPanel: React.FC = () => {
                   placeholder="Screen (e.g., Screen 1)"
                   value={newShow.screen}
                   onChange={(e) => setNewShow({ ...newShow, screen: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="px-3 py-2 border border-input rounded-md bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
                   required
                 />
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors duration-200"
+                  className="bg-primary text-primary-foreground hover:brightness-95 px-4 py-2 rounded-md transition-colors duration-200"
                 >
                   Add Show
                 </button>
@@ -837,9 +814,9 @@ const AdminPanel: React.FC = () => {
             </div>
 
             {/* Shows List */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">All Shows</h3>
+            <div className="bg-card rounded-xl shadow-lg border border-border overflow-hidden">
+              <div className="px-6 py-4 border-b border-border">
+                <h3 className="text-lg font-semibold text-foreground">All Shows</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -859,16 +836,16 @@ const AdminPanel: React.FC = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  <tbody className="bg-card divide-y divide-gray-200 dark:divide-gray-700">
                     {shows.map((show) => (
                       <tr key={show.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {movies.find(m => m.id === show.movie_id)?.title || 'Unknown Movie'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {new Date(show.show_time).toLocaleString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {show.screen}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -911,10 +888,10 @@ const AdminPanel: React.FC = () => {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+                  className="bg-card rounded-xl p-6 shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Edit Show</h3>
+                    <h3 className="text-lg font-semibold text-foreground">Edit Show</h3>
                     <button
                       onClick={handleCancelEdit}
                       className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
@@ -925,14 +902,14 @@ const AdminPanel: React.FC = () => {
                   </div>
                   <form onSubmit={handleUpdateShow} className="space-y-4">
                     <div>
-                      <label htmlFor="edit-show-movie" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+                      <label htmlFor="edit-show-movie" className="block text-sm font-medium text-muted-foreground mb-1">
                         Movie
                       </label>
                       <select
                         id="edit-show-movie"
                         value={editShowForm.movie_id}
                         onChange={(e) => setEditShowForm({ ...editShowForm, movie_id: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
                         required
                       >
                         <option value="" disabled>Select a movie</option>
@@ -942,7 +919,7 @@ const AdminPanel: React.FC = () => {
                       </select>
                     </div>
                     <div>
-                      <label htmlFor="edit-show-time" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+                      <label htmlFor="edit-show-time" className="block text-sm font-medium text-muted-foreground mb-1">
                         Show Time
                       </label>
                       <input
@@ -950,12 +927,12 @@ const AdminPanel: React.FC = () => {
                         type="datetime-local"
                         value={editShowForm.show_time}
                         onChange={(e) => setEditShowForm({ ...editShowForm, show_time: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
                         required
                       />
                     </div>
                     <div>
-                      <label htmlFor="edit-screen" className="block text-sm font-medium text-gray-700 dark:text-white mb-1">
+                      <label htmlFor="edit-screen" className="block text-sm font-medium text-muted-foreground mb-1">
                         Screen
                       </label>
                       <input
@@ -963,7 +940,7 @@ const AdminPanel: React.FC = () => {
                         type="text"
                         value={editShowForm.screen}
                         onChange={(e) => setEditShowForm({ ...editShowForm, screen: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-input rounded-md bg-card text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
                         placeholder="e.g., Screen 1"
                         required
                       />
@@ -972,14 +949,14 @@ const AdminPanel: React.FC = () => {
                       <button
                         type="button"
                         onClick={handleCancelEdit}
-                        className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
+                        className="px-4 py-2 text-foreground bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={updatingShow}
-                        className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground hover:brightness-95 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {updatingShow ? (
                           <>
@@ -1008,9 +985,9 @@ const AdminPanel: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">All Bookings</h3>
+            <div className="bg-card rounded-xl shadow-lg border border-border overflow-hidden">
+              <div className="px-6 py-4 border-b border-border">
+                <h3 className="text-lg font-semibold text-foreground">All Bookings</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -1039,25 +1016,25 @@ const AdminPanel: React.FC = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  <tbody className="bg-card divide-y divide-gray-200 dark:divide-gray-700">
                     {bookings.map((booking) => (
                       <tr key={booking.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                           #{booking.id}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {booking.user_name}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {booking.movie_title}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {new Date(booking.show_time).toLocaleString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           {booking.seat_numbers?.join(', ') || 'N/A'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                           ₹{booking.total_amount}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -1085,22 +1062,22 @@ const AdminPanel: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl max-w-md w-full"
+            className="bg-card rounded-xl p-6 shadow-xl max-w-md w-full"
           >
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
                 <Trash2 className="h-6 w-6 text-red-600 dark:text-red-400" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg font-medium text-foreground mb-2">
                 Confirm Delete
               </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 Are you sure you want to delete "{deleteConfirm.title}"? This action cannot be undone.
               </p>
               <div className="flex items-center justify-center space-x-3">
                 <button
                   onClick={cancelDelete}
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
+                  className="px-4 py-2 text-foreground bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
                 >
                   Cancel
                 </button>

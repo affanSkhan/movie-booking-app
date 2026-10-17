@@ -20,12 +20,12 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -8 }}
       transition={{ duration: 0.3 }}
-      className="group relative overflow-hidden card-hover"
+      className="group relative overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
       {/* Movie Poster */}
       <div className="relative aspect-[2/3] overflow-hidden rounded-t-xl">
         <img
-          src={movie.poster_url || 'https://via.placeholder.com/300x450?text=Movie'}
+          src={movie.poster_url || ''}
           alt={movie.title}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
@@ -54,30 +54,30 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
         <div className="absolute top-3 left-3 px-2 py-1 rounded-full flex items-center space-x-1">
           <Star className="w-3 h-3 text-yellow-400" fill="currentColor" />
           <span className="text-xs text-white font-medium">
-            {(Math.random() * 2 + 3).toFixed(1)}
+            —
           </span>
         </div>
       </div>
 
       {/* Movie Info */}
       <div className="p-4">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
+        <h3 className="text-lg font-bold text-foreground mb-2 line-clamp-1 group-hover:text-primary transition-colors duration-200">
           {movie.title}
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4">
+        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
           {movie.description}
         </p>
         
         {/* Action Buttons */}
         <div className="flex space-x-2">
           <Link
-            to={`/movie/${movie.id}`}
+            to={`/showtimes/${movie.id}`}
             className="flex-1 btn-primary text-center text-sm py-2"
           >
             View Details
           </Link>
           <Link
-            to={`/showtimes?movie=${movie.id}`}
+            to={`/showtimes/${movie.id}`}
             className="flex-1 btn-secondary text-center text-sm py-2"
           >
             Book Now
