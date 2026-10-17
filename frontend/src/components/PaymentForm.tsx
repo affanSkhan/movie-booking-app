@@ -6,7 +6,7 @@ interface PaymentFormProps {
   amount: number;
   selectedSeats: string[];
   showId: string;
-  onPaymentSuccess: (paymentId: string, orderId: string) => void;
+  onPaymentSuccess: (paymentId: string, orderId: string, booking: Record<string, unknown>) => void;
   onPaymentFailure: () => void;
   disabled?: boolean;
   onPaymentStart?: () => void;
@@ -66,19 +66,19 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         showId,
       });
 
-      const { orderId, key } = response.data;
+      const { orderId, key, amount: amountInPaise, currency = 'INR' } = response.data as { orderId: string; key: string; amount: number; currency?: string };
 
-      console.log('✅ Payment initialized:', { orderId, key });
+      // The server order's amount is in paise, as required by Razorpay Checkout.
 
       // Create Razorpay options
       const options = {
         key,
-        amount,
-        currency: 'INR',
+        amount: amountInPaise,
+        currency,
         name: 'Movie Booking System',
         description: `Booking ${selectedSeats.length} seat(s)`,
         order_id: orderId,
-        handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string }) => {
+        handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => {
           console.log('✅ Payment successful:', response);
           
           try {
@@ -88,10 +88,11 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
               seatNumbers: selectedSeats,
               paymentId: response.razorpay_payment_id,
               orderId: response.razorpay_order_id,
+              signature: response.razorpay_signature,
             });
 
             console.log('✅ Booking confirmed:', bookingResponse.data);
-            onPaymentSuccess(response.razorpay_payment_id, response.razorpay_order_id);
+            onPaymentSuccess(response.razorpay_payment_id, response.razorpay_order_id, bookingResponse.data as Record<string, unknown>);
           } catch (bookingError) {
             console.error('❌ Booking confirmation failed:', bookingError);
             setError('Payment successful but booking failed. Please contact support.');
@@ -114,15 +115,19 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         },
       };
 
-      // Create Razorpay instance and open payment modal
+      // Handle a slow/blocked checkout script gracefully instead of throwing a runtime error.
+      const RazorpayConstructor = (window as unknown as { Razorpay?: new (options: any) => { open: () => void } }).Razorpay;
+      if (!RazorpayConstructor) {
+        throw new Error('Razorpay checkout did not load. Please check your connection and try again.');
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const razorpay = new ((window as unknown as { Razorpay: new (options: any) => any }).Razorpay)(options);
+      const razorpay = new (RazorpayConstructor as new (options: any) => { open: () => void })(options);
       razorpay.open();
 
     } catch (error: unknown) {
       console.error('❌ Payment initialization failed:', error);
-      const err = error as { response?: { data?: { error?: string } } };
-      setError(err.response?.data?.error || 'Failed to initialize payment');
+      const err = error as { message?: string; response?: { data?: { error?: string } } };
+      setError(err.response?.data?.error || err.message || 'Failed to initialize payment');
       setLoading(false);
       
       // Unlock seats after payment failure
