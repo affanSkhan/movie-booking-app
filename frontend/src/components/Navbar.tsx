@@ -1,306 +1,190 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Moon, Sun, Menu, X, LogOut, Shield } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import {
+  Clapperboard,
+  Moon,
+  Sun,
+  Menu,
+  X,
+  LogOut,
+  Shield,
+  Ticket,
+  ChevronDown,
+} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContextInstance';
 import { useDarkMode } from '../hooks/useDarkMode';
-import ReactDOM from 'react-dom';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const { darkMode, setDarkMode } = useDarkMode();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const closeMenus = () => {
+    setMobileOpen(false);
+    setAccountOpen(false);
+  };
 
   const handleLogout = () => {
     logout();
-    setIsUserMenuOpen(false);
+    closeMenus();
     navigate('/');
   };
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
+  const links = [
+    { to: '/', label: 'Home' },
+    { to: '/movies', label: 'Movies' },
+    { to: '/showtimes', label: 'Showtimes' },
+  ];
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const toggleUserMenu = () => {
-    setIsUserMenuOpen(!isUserMenuOpen);
-  };
-
-  const closeMenus = () => {
-    setIsMobileMenuOpen(false);
-    setIsUserMenuOpen(false);
+  const linkClass = (path: string) => {
+    const active = path === '/'
+      ? location.pathname === '/'
+      : location.pathname === path || location.pathname.startsWith(path + '/');
+    return 'relative rounded-lg px-3 py-2 text-sm font-medium transition-colors ' +
+      (active ? 'bg-white/[0.08] text-white' : 'text-white/60 hover:bg-white/[0.05] hover:text-white');
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 border-b border-white/20 dark:border-gray-800/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link 
-            to="/" 
-            className="flex items-center space-x-3 group"
-            onClick={closeMenus}
+    <nav className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.08] bg-[#0a0b10]/90 text-white shadow-[0_8px_32px_rgba(0,0,0,0.18)] backdrop-blur-2xl">
+      <div className="mx-auto flex h-[4.25rem] max-w-7xl items-center justify-between px-4 sm:px-8 lg:px-10">
+        <Link to="/" className="group inline-flex shrink-0 items-center gap-3" onClick={closeMenus} aria-label="MovieBook home">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-orange-300 to-orange-500 text-[#17110c] shadow-[0_5px_20px_rgba(249,115,22,0.17)] transition group-hover:scale-[1.03]">
+            <Clapperboard className="h-5 w-5" strokeWidth={2.2} />
+          </span>
+          <span>
+            <span className="block text-[15px] font-bold tracking-[0.015em] text-white">MovieBook</span>
+            <span className="mt-0.5 hidden text-[9px] font-medium uppercase tracking-[0.2em] text-white/40 sm:block">Your next movie night</span>
+          </span>
+        </Link>
+
+        <div className="hidden items-center gap-1 md:flex">
+          {links.map((link) => (
+            <Link key={link.to} to={link.to} className={linkClass(link.to)} onClick={closeMenus}>
+              {link.label}
+              {link.to === location.pathname && <span className="absolute inset-x-3 -bottom-[1.05rem] h-0.5 rounded-full bg-orange-300" />}
+            </Link>
+          ))}
+          {user && (
+            <Link to="/my-bookings" className={linkClass('/my-bookings')} onClick={closeMenus}>
+              My bookings
+            </Link>
+          )}
+          {user?.role === 'admin' && (
+            <Link to="/admin" className={linkClass('/admin')} onClick={closeMenus}>
+              <span className="inline-flex items-center gap-2"><Shield className="h-3.5 w-3.5 text-orange-300" /> Admin</span>
+            </Link>
+          )}
+        </div>
+
+        <div className="hidden items-center gap-2 md:flex">
+          <button
+            type="button"
+            onClick={() => setDarkMode(!darkMode)}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.035] text-white/65 transition hover:border-white/20 hover:bg-white/[0.08] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-300"
+            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={darkMode ? 'Light mode' : 'Dark mode'}
           >
-            <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
-              <span className="text-white font-bold text-xl">M</span>
+            {darkMode ? <Sun className="h-4 w-4 text-orange-200" /> : <Moon className="h-4 w-4" />}
+          </button>
+
+          {user ? (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setAccountOpen((open) => !open)}
+                aria-expanded={accountOpen}
+                aria-haspopup="menu"
+                className="ml-1 inline-flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.045] pl-2 pr-3 transition hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-300"
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-orange-300 to-orange-500 text-xs font-bold text-[#17110c]">
+                  {user.name?.charAt(0).toUpperCase() || 'U'}
+                </span>
+                <span className="max-w-[8rem] truncate text-sm font-medium text-white/85">{user.name || 'Account'}</span>
+                <ChevronDown className={'h-3.5 w-3.5 text-white/50 transition ' + (accountOpen ? 'rotate-180' : '')} />
+              </button>
+
+              {accountOpen && (
+                <>
+                  <button type="button" aria-label="Close account menu" className="fixed inset-0 z-40 cursor-default" onClick={() => setAccountOpen(false)} />
+                  <div role="menu" className="absolute right-0 top-full z-50 mt-3 w-64 overflow-hidden rounded-2xl border border-white/10 bg-[#15161e] shadow-2xl">
+                    <div className="border-b border-white/[0.08] px-4 py-4">
+                      <p className="truncate text-sm font-semibold text-white">{user.name || 'Your account'}</p>
+                      <p className="mt-1 truncate text-xs text-white/45">{user.email}</p>
+                    </div>
+                    <Link role="menuitem" to="/my-bookings" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 text-sm text-white/75 transition hover:bg-white/[0.05] hover:text-white">
+                      <Ticket className="h-4 w-4 text-orange-200" /> My bookings
+                    </Link>
+                    <button role="menuitem" type="button" onClick={handleLogout} className="flex w-full items-center gap-3 border-t border-white/[0.07] px-4 py-3 text-left text-sm text-rose-300 transition hover:bg-rose-400/[0.08]">
+                      <LogOut className="h-4 w-4" /> Sign out
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
-            <span className="text-xl font-bold text-gradient group-hover:scale-105 transition-transform duration-300">
-              MovieBook
-            </span>
-          </Link>
+          ) : (
+            <div className="ml-2 flex items-center gap-2">
+              <Link to="/login" onClick={closeMenus} className="rounded-xl px-4 py-2.5 text-sm font-semibold text-white/70 transition hover:bg-white/[0.06] hover:text-white">Sign in</Link>
+              <Link to="/register" onClick={closeMenus} className="rounded-xl bg-orange-400 px-4 py-2.5 text-sm font-bold text-[#17110c] transition hover:bg-orange-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-200">Create account</Link>
+            </div>
+          )}
+        </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link 
-              to="/" 
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
-            >
-              Home
-            </Link>
-            <Link 
-              to="/movies" 
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
-            >
-              Movies
-            </Link>
-            <Link 
-              to="/showtimes" 
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
-            >
-              Showtimes
-            </Link>
-            {user && (
-              <Link 
-                to="/my-bookings" 
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
-              >
-                My Bookings
-              </Link>
-            )}
-            {user?.role === 'admin' && (
-              <Link 
-                to="/admin" 
-                className="flex items-center space-x-2 text-primary hover:text-primary/80 font-medium transition-colors duration-200"
-              >
-                <Shield className="w-4 h-4" />
-                <span>Admin Panel</span>
-              </Link>
-            )}
-          </div>
-
-          {/* Desktop Actions */}
-          <div className="hidden md:flex items-center space-x-4">
-            {/* Dark Mode Toggle */}
-            <button
-              onClick={toggleDarkMode}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {darkMode ? (
-                <Sun className="w-5 h-5 text-yellow-500" />
-              ) : (
-                <Moon className="w-5 h-5 text-gray-600" />
-              )}
-            </button>
-
-            {/* User Menu */}
-            {user ? (
-              <>
-                <div className="relative">
-                  <button
-                    onClick={toggleUserMenu}
-                    className="flex items-center space-x-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                  >
-                    <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center">
-                      <span className="text-white font-medium text-sm">
-                        {user.name?.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {user.name}
-                    </span>
-                  </button>
-
-                  {/* User Dropdown */}
-                  {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 card shadow-soft-dark animate-fade-in" style={{ zIndex: 1000, pointerEvents: 'auto' }}>
-                      <div className="py-1">
-                        <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {user.name}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {user.email}
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => { console.log('Dropdown Logout clicked'); handleLogout(); }}
-                          className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
-                          style={{ pointerEvents: 'auto', zIndex: 1001 }}
-                        >
-                          <LogOut className="w-4 h-4" />
-                          <span>Logout</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center space-x-3">
-                <Link
-                  to="/login"
-                  className="btn-ghost"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="btn-primary"
-                >
-                  Sign Up
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center space-x-2">
-            <button
-              onClick={toggleDarkMode}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {darkMode ? (
-                <Sun className="w-5 h-5 text-yellow-500" />
-              ) : (
-                <Moon className="w-5 h-5 text-gray-600" />
-              )}
-            </button>
-            <button
-              onClick={toggleMobileMenu}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              aria-label="Toggle mobile menu"
-            >
-              {isMobileMenuOpen ? (
-                <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-              ) : (
-                <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-              )}
-            </button>
-          </div>
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            type="button"
+            onClick={() => setDarkMode(!darkMode)}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/70 transition hover:bg-white/[0.09]"
+            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {darkMode ? <Sun className="h-4 w-4 text-orange-200" /> : <Moon className="h-4 w-4" />}
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileOpen((open) => !open)}
+            aria-expanded={mobileOpen}
+            aria-controls="moviebook-mobile-navigation"
+            aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white transition hover:bg-white/[0.09]"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </div>
 
-      {/* Mobile menu portal */}
-      {typeof window !== 'undefined' && isMobileMenuOpen && ReactDOM.createPortal(
-        <>
-          {/* Backdrop for mobile menu */}
-          <div 
-            className="fixed left-0 right-0 top-16 bottom-0 bg-black/20 md:hidden"
-            style={{ pointerEvents: 'auto', zIndex: 9999 }}
-            onClick={closeMenus}
-          />
-          {/* Mobile Navigation */}
-          <div className="fixed left-0 right-0 top-16 bg-white/80 dark:bg-gray-900/80 border-t border-white/20 dark:border-gray-800/20 animate-slide-up md:hidden"
-            style={{ zIndex: 9999, pointerEvents: 'auto' }}>
-            <div className="px-4 py-2 space-y-1">
-              <Link
-                to="/"
-                className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
-                onClick={() => { console.log('Mobile Home clicked'); closeMenus(); }}
-              >
-                Home
+      {mobileOpen && (
+        <div id="moviebook-mobile-navigation" className="border-t border-white/[0.08] bg-[#0a0b10] px-4 pb-5 pt-3 md:hidden">
+          <div className="space-y-1">
+            {links.map((link) => (
+              <Link key={link.to} to={link.to} onClick={closeMenus} className={'block ' + linkClass(link.to)}>
+                {link.label}
               </Link>
-              <Link
-                to="/movies"
-                className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
-                onClick={() => { console.log('Mobile Movies clicked'); closeMenus(); }}
-              >
-                Movies
-              </Link>
-              <Link
-                to="/showtimes"
-                className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
-                onClick={() => { console.log('Mobile Showtimes clicked'); closeMenus(); }}
-              >
-                Showtimes
-              </Link>
-              {user && (
-                <Link
-                  to="/my-bookings"
-                  className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
-                  onClick={() => { console.log('Mobile MyBookings clicked'); closeMenus(); }}
-                >
-                  My Bookings
-                </Link>
-              )}
-              {user?.role === 'admin' && (
-                <Link
-                  to="/admin"
-                  className="flex items-center space-x-2 px-3 py-2 rounded-lg text-primary hover:text-primary/80 hover:bg-primary/10 font-medium transition-colors duration-200"
-                  onClick={() => { console.log('Mobile Admin clicked'); closeMenus(); }}
-                >
-                  <Shield className="w-4 h-4" />
-                  <span>Admin Panel</span>
-                </Link>
-              )}
-              {/* Mobile User Section */}
-              {user ? (
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-                  <div className="px-3 py-2">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {user.name}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {user.email}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => { console.log('Mobile Logout clicked'); handleLogout(); }}
-                    className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              ) : (
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2 space-y-2">
-                  <Link
-                    to="/login"
-                    className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors duration-200"
-                    onClick={() => { console.log('Mobile Login clicked'); closeMenus(); }}
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="block px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors duration-200"
-                    onClick={() => { console.log('Mobile Register clicked'); closeMenus(); }}
-                  >
-                    Sign Up
-                  </Link>
-                </div>
-              )}
-            </div>
+            ))}
+            {user && <Link to="/my-bookings" onClick={closeMenus} className={'block ' + linkClass('/my-bookings')}>My bookings</Link>}
+            {user?.role === 'admin' && <Link to="/admin" onClick={closeMenus} className={'block ' + linkClass('/admin')}>Admin panel</Link>}
           </div>
-        </>, document.body
-      )}
-
-      {/* Backdrop for user menu */}
-      {isUserMenuOpen && (
-        <div 
-          className="fixed inset-0 z-40"
-          onClick={() => setIsUserMenuOpen(false)}
-        />
+          {user ? (
+            <div className="mt-4 flex items-center justify-between border-t border-white/[0.08] pt-4">
+              <div className="min-w-0 pr-3">
+                <p className="truncate text-sm font-semibold text-white">{user.name || 'Account'}</p>
+                <p className="mt-1 truncate text-xs text-white/45">{user.email}</p>
+              </div>
+              <button type="button" onClick={handleLogout} className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-rose-400/20 bg-rose-400/[0.07] px-3 py-2 text-xs font-semibold text-rose-200">
+                <LogOut className="h-3.5 w-3.5" /> Sign out
+              </button>
+            </div>
+          ) : (
+            <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/[0.08] pt-4">
+              <Link to="/login" onClick={closeMenus} className="rounded-xl border border-white/10 px-4 py-3 text-center text-sm font-semibold text-white/80 transition hover:bg-white/[0.05]">Sign in</Link>
+              <Link to="/register" onClick={closeMenus} className="rounded-xl bg-orange-400 px-4 py-3 text-center text-sm font-bold text-[#17110c] transition hover:bg-orange-300">Create account</Link>
+            </div>
+          )}
+        </div>
       )}
     </nav>
   );
 };
 
-export default Navbar; 
+export default Navbar;
