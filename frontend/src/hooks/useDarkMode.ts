@@ -1,20 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
 
+// Backwards-compatible hook for components that still use the original API.
 export const useDarkMode = () => {
-  const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.theme === 'dark' ||
-      (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  });
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.theme = 'dark';
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.theme = 'light';
-    }
-  }, [darkMode]);
-
-  return { darkMode, setDarkMode };
-}; 
+  const { isDark, toggleTheme, setTheme } = useTheme();
+  return {
+    darkMode: isDark,
+    setDarkMode: (dark: boolean) => setTheme(dark ? 'dark' : 'light'),
+    toggleDarkMode: toggleTheme,
+  };
+};
