@@ -86,8 +86,28 @@ router.post("/confirm", authenticateToken, async (req, res) => {
     // this exact seat count and server-defined price.
     const paymentOrder = await razorpay.orders.fetch(String(orderId));
     const expectedAmountInPaise = seatNumbers.length * 250 * 100;
-    if (Number(paymentOrder.amount) !== expectedAmountInPaise || paymentOrder.currency !== "INR") {
-      res.status(400).json({ error: "The verified payment order does not match this booking total." });
+    const orderNotes = paymentOrder.notes as Record<string, string> | undefined;
+    const expectedSeats = [...seatNumbers].sort().join(",");
+    if (
+      Number(paymentOrder.amount) !== expectedAmountInPaise ||
+      paymentOrder.currency !== "INR" ||
+      orderNotes?.booking_type !== "movie_booking" ||
+      orderNotes?.user_id !== String(userId) ||
+      orderNotes?.show_id !== String(showId) ||
+      orderNotes?.seat_numbers !== expectedSeats
+    ) {
+      res.status(400).json({ error: "The verified payment order does not match this user, show, seat selection, or booking total." });
+      return;
+    }
+
+    const payment = await razorpay.payments.fetch(String(paymentId));
+    if (
+      String(payment.order_id) !== String(orderId) ||
+      Number(payment.amount) !== expectedAmountInPaise ||
+      payment.currency !== "INR" ||
+      payment.status !== "captured"
+    ) {
+      res.status(400).json({ error: "The payment has not been verified as captured for this booking." });
       return;
     }
 
