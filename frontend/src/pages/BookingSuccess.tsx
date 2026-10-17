@@ -153,7 +153,7 @@ const BookingSuccess: React.FC = () => {
                 
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Total Amount:</span>
-                  <span className="font-medium text-primary text-lg">₹{booking.total_amount}</span>
+                  <span className="font-medium text-primary text-lg">₹{booking.amount ?? booking.total_amount}</span>
                 </div>
                 
                 <div className="flex justify-between items-center">

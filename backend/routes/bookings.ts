@@ -1,5 +1,6 @@
 import express from "express";
-import { pool } from "../index";
+import { io, pool } from "../index";
+import { razorpay, verifyPayment } from "../utils/razorpayClient";
 import { authenticateToken } from "../middlewares/authMiddleware";
 import { seatLockingService } from "../services/seatLockingService";
 
@@ -49,92 +50,147 @@ router.get("/", authenticateToken, async (req, res) => {
   }
 });
 
-// Confirm booking after payment
+// Confirm booking after payment. Payment signature, seat holds and booking writes
+// are checked and committed together to prevent inconsistent seat states.
 router.post("/confirm", authenticateToken, async (req, res) => {
+  const userId = req.user!.userId;
+  const { showId, seatNumbers, paymentId, orderId, signature } = req.body;
+
+  if (!showId || !Number.isInteger(Number(showId)) || Number(showId) < 1) {
+    res.status(400).json({ error: "A valid show ID is required." });
+    return;
+  }
+  if (
+    !Array.isArray(seatNumbers) ||
+    seatNumbers.length < 1 ||
+    seatNumbers.length > 5 ||
+    seatNumbers.some((seat: unknown) => typeof seat !== "string" || !/^[A-Z]\d{1,2}$/.test(seat)) ||
+    new Set(seatNumbers).size !== seatNumbers.length
+  ) {
+    res.status(400).json({ error: "Choose between one and five unique seats." });
+    return;
+  }
+  if (!paymentId || !orderId || !signature) {
+    res.status(400).json({ error: "Payment verification details are missing." });
+    return;
+  }
+
   try {
-    const { showId, seatNumbers, paymentId, orderId } = req.body;
-    const userId = req.user!.userId;
+    const isPaymentValid = await verifyPayment(String(paymentId), String(orderId), String(signature));
+    if (!isPaymentValid) {
+      res.status(400).json({ error: "Payment verification failed." });
+      return;
+    }
 
-    console.log(`🎫 Confirming booking for user ${userId}:`, {
-      showId,
-      seatNumbers,
-      paymentId,
-      orderId,
-    });
+    // A valid signature alone is not enough: the signed order must also be for
+    // this exact seat count and server-defined price.
+    const paymentOrder = await razorpay.orders.fetch(String(orderId));
+    const expectedAmountInPaise = seatNumbers.length * 250 * 100;
+    const orderNotes = paymentOrder.notes as Record<string, string> | undefined;
+    const expectedSeats = [...seatNumbers].sort().join(",");
+    if (
+      Number(paymentOrder.amount) !== expectedAmountInPaise ||
+      paymentOrder.currency !== "INR" ||
+      orderNotes?.booking_type !== "movie_booking" ||
+      orderNotes?.user_id !== String(userId) ||
+      orderNotes?.show_id !== String(showId) ||
+      orderNotes?.seat_numbers !== expectedSeats
+    ) {
+      res.status(400).json({ error: "The verified payment order does not match this user, show, seat selection, or booking total." });
+      return;
+    }
 
-    // Start transaction
+    const payment = await razorpay.payments.fetch(String(paymentId));
+    if (
+      String(payment.order_id) !== String(orderId) ||
+      Number(payment.amount) !== expectedAmountInPaise ||
+      payment.currency !== "INR" ||
+      payment.status !== "captured"
+    ) {
+      res.status(400).json({ error: "The payment has not been verified as captured for this booking." });
+      return;
+    }
+
     const client = await pool.connect();
+    let booking: Record<string, unknown>;
+    let bookedSeats: Array<{ id: number; seat_number: string }>;
 
     try {
       await client.query("BEGIN");
 
-      // Check if seats are still locked by this user
       const seatCheck = await client.query(
-        "SELECT * FROM seats WHERE show_id = $1 AND seat_number = ANY($2) AND locked_by = $3 AND status = $4",
-        [showId, seatNumbers, userId, "locked"],
+        `SELECT id, seat_number
+         FROM seats
+         WHERE show_id = $1
+           AND seat_number = ANY($2)
+           AND locked_by = $3
+           AND status = 'locked'
+           AND lock_expires_at > NOW()
+         FOR UPDATE`,
+        [Number(showId), seatNumbers, userId]
       );
 
       if (seatCheck.rows.length !== seatNumbers.length) {
         await client.query("ROLLBACK");
-        res.status(400).json({ error: "Some seats are no longer available" });
+        res.status(409).json({ error: "One or more seats are no longer held by you. Refresh the seat map before trying again." });
         return;
       }
 
-      // Create booking
       const bookingResult = await client.query(
-        "INSERT INTO bookings (user_id, show_id, amount, payment_id, order_id, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-        [
-          userId,
-          showId,
-          seatNumbers.length * 500,
-          paymentId,
-          orderId,
-          "confirmed",
-        ],
+        `INSERT INTO bookings (user_id, show_id, amount, payment_id, order_id, status)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING *`,
+        [userId, Number(showId), seatNumbers.length * 250, paymentId, orderId, "confirmed"]
+      );
+      booking = bookingResult.rows[0];
+
+      const seatUpdate = await client.query(
+        `UPDATE seats
+         SET status = 'booked',
+             locked_by = NULL,
+             locked_at = NULL,
+             lock_expires_at = NULL
+         WHERE show_id = $1
+           AND seat_number = ANY($2)
+           AND locked_by = $3
+           AND status = 'locked'
+           AND lock_expires_at > NOW()
+         RETURNING id, seat_number`,
+        [Number(showId), seatNumbers, userId]
       );
 
-      // Mark seats as booked using the seat locking service
-      const bookResult = await seatLockingService.bookSeats(
-        seatNumbers,
-        showId,
-        userId,
-      );
-
-      if (!bookResult.success) {
+      if (seatUpdate.rows.length !== seatNumbers.length) {
         await client.query("ROLLBACK");
-        res.status(400).json({ error: bookResult.message });
+        res.status(409).json({ error: "Seat availability changed during confirmation. Keep your payment reference and contact support." });
         return;
       }
+      bookedSeats = seatUpdate.rows;
 
-      // Create booking_seats entries
-      for (const seatNumber of seatNumbers) {
-        const seatResult = await client.query(
-          "SELECT id FROM seats WHERE show_id = $1 AND seat_number = $2",
-          [showId, seatNumber],
+      for (const seat of bookedSeats) {
+        await client.query(
+          "INSERT INTO booking_seats (booking_id, seat_id) VALUES ($1, $2)",
+          [booking.id, seat.id]
         );
-
-        if (seatResult.rows.length > 0) {
-          await client.query(
-            "INSERT INTO booking_seats (booking_id, seat_id) VALUES ($1, $2)",
-            [bookingResult.rows[0].id, seatResult.rows[0].id],
-          );
-        }
       }
-
       await client.query("COMMIT");
-
-      console.log(`✅ Booking confirmed successfully for user ${userId}`);
-
-      res.status(201).json(bookingResult.rows[0]);
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;
     } finally {
       client.release();
     }
+
+    for (const seat of bookedSeats) {
+      io.to(`show-${showId}`).emit("seat-updated", {
+        seatNumber: seat.seat_number,
+        status: "booked",
+        userId: null,
+      });
+    }
+    res.status(201).json(booking);
   } catch (error) {
-    console.error("Error confirming booking:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Error confirming booking.");
+    res.status(500).json({ error: "Booking confirmation could not be completed. Keep your payment reference and contact support if payment was captured." });
   }
 });
 

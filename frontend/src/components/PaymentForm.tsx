@@ -6,7 +6,7 @@ interface PaymentFormProps {
   amount: number;
   selectedSeats: string[];
   showId: string;
-  onPaymentSuccess: (paymentId: string, orderId: string) => void;
+  onPaymentSuccess: (paymentId: string, orderId: string, booking: Record<string, unknown>) => void;
   onPaymentFailure: () => void;
   disabled?: boolean;
   onPaymentStart?: () => void;
@@ -41,6 +41,13 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
 
   const handlePayment = async () => {
     if (onPaymentStart) onPaymentStart();
+    const RazorpayConstructor = (window as unknown as { Razorpay?: new (options: unknown) => { open: () => void } }).Razorpay;
+    if (!RazorpayConstructor) {
+      setError('Secure checkout is still loading or blocked by your browser. Please wait a moment and try again.');
+      if (onPaymentCancel) onPaymentCancel();
+      return;
+    }
+
     if (!user) {
       setError('Please login to proceed with payment');
       if (onPaymentCancel) onPaymentCancel();
@@ -66,20 +73,23 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         showId,
       });
 
-      const { orderId, key } = response.data;
+      const { orderId, key, amount: amountInPaise, currency = 'INR' } = response.data as { orderId: string; key: string; amount: number; currency?: string };
 
-      console.log('✅ Payment initialized:', { orderId, key });
+      // The server order's amount is in paise, as required by Razorpay Checkout.
+      if (!orderId || !key || !Number.isFinite(amountInPaise) || amountInPaise !== amount * 100) {
+        throw new Error('The payment gateway returned an invalid order. Please try again.');
+      }
 
       // Create Razorpay options
       const options = {
         key,
-        amount,
-        currency: 'INR',
+        amount: amountInPaise,
+        currency,
         name: 'Movie Booking System',
         description: `Booking ${selectedSeats.length} seat(s)`,
         order_id: orderId,
-        handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string }) => {
-          console.log('✅ Payment successful:', response);
+        handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => {
+          // Do not log payment signatures or gateway response payloads.
           
           try {
             // Confirm booking
@@ -88,12 +98,13 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
               seatNumbers: selectedSeats,
               paymentId: response.razorpay_payment_id,
               orderId: response.razorpay_order_id,
+              signature: response.razorpay_signature,
             });
 
             console.log('✅ Booking confirmed:', bookingResponse.data);
-            onPaymentSuccess(response.razorpay_payment_id, response.razorpay_order_id);
-          } catch (bookingError) {
-            console.error('❌ Booking confirmation failed:', bookingError);
+            onPaymentSuccess(response.razorpay_payment_id, response.razorpay_order_id, bookingResponse.data as Record<string, unknown>);
+          } catch {
+            console.error('Booking confirmation failed.');
             setError('Payment successful but booking failed. Please contact support.');
             onPaymentFailure();
           }
@@ -114,15 +125,13 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         },
       };
 
-      // Create Razorpay instance and open payment modal
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const razorpay = new ((window as unknown as { Razorpay: new (options: any) => any }).Razorpay)(options);
+      const razorpay = new RazorpayConstructor(options);
       razorpay.open();
 
     } catch (error: unknown) {
-      console.error('❌ Payment initialization failed:', error);
-      const err = error as { response?: { data?: { error?: string } } };
-      setError(err.response?.data?.error || 'Failed to initialize payment');
+      console.error('Payment initialization failed.');
+      const err = error as { message?: string; response?: { data?: { error?: string } } };
+      setError(err.response?.data?.error || err.message || 'Failed to initialize payment');
       setLoading(false);
       
       // Unlock seats after payment failure

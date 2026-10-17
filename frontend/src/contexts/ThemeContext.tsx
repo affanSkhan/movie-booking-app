@@ -47,6 +47,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 
+// The provider and its hook intentionally share this context module.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTheme = (): ThemeContextValue => {
   const context = useContext(ThemeContext);
   if (!context) throw new Error('useTheme must be used inside ThemeProvider');

@@ -30,6 +30,7 @@ export const createRazorpayOrder = async (
   amount: number,
   currency: string = "INR",
   receipt?: string,
+  additionalNotes: Record<string, string> = {},
 ) => {
   try {
     console.log("Creating Razorpay order:", { amount, currency, receipt });
@@ -40,6 +41,7 @@ export const createRazorpayOrder = async (
       receipt: receipt || `receipt_${Date.now()}`,
       notes: {
         booking_type: "movie_booking",
+        ...additionalNotes,
       },
     };
 

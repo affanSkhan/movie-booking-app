@@ -401,25 +401,80 @@ class SeatLockingService {
     durationMs: number
   ): Promise<{ success: boolean; message: string }> {
     try {
-      const lockExpiresAt = new Date(Date.now() + durationMs);
-      const result = await pool.query(
-        `UPDATE seats 
-         SET lock_expires_at = $1 
-         WHERE seat_number = ANY($2) AND show_id = $3 AND locked_by = $4 AND status = 'locked'`,
-        [lockExpiresAt, seatNumbers, showId, userId]
-      );
-      if (result.rowCount === 0) {
-        return { success: false, message: 'No seats were extended (not locked by user or not locked).' };
+      const uniqueSeatNumbers = Array.from(new Set(seatNumbers));
+      if (
+        uniqueSeatNumbers.length === 0 ||
+        uniqueSeatNumbers.length !== seatNumbers.length ||
+        !Number.isFinite(durationMs) ||
+        durationMs <= 0
+      ) {
+        return { success: false, message: "Invalid seat selection or hold duration." };
       }
-      // Broadcast update for each seat and update in-memory timeout
-      for (const seatNumber of seatNumbers) {
-        io.to(`show-${showId}`).emit('seat-updated', {
+
+      const lockExpiresAt = new Date(Date.now() + durationMs);
+      const client = await pool.connect();
+
+      try {
+        await client.query("BEGIN");
+
+        // Lock and validate every requested seat before changing any expiry.
+        const seatCheck = await client.query(
+          `SELECT seat_number
+           FROM seats
+           WHERE seat_number = ANY($1)
+             AND show_id = $2
+             AND locked_by = $3
+             AND status = 'locked'
+             AND lock_expires_at > NOW()
+           FOR UPDATE`,
+          [uniqueSeatNumbers, showId, userId]
+        );
+
+        if (seatCheck.rows.length !== uniqueSeatNumbers.length) {
+          await client.query("ROLLBACK");
+          return {
+            success: false,
+            message: "One or more seats are no longer held by you. Refresh the map and select them again.",
+          };
+        }
+
+        const updated = await client.query(
+          `UPDATE seats
+           SET lock_expires_at = $1
+           WHERE seat_number = ANY($2)
+             AND show_id = $3
+             AND locked_by = $4
+             AND status = 'locked'
+             AND lock_expires_at > NOW()
+           RETURNING seat_number`,
+          [lockExpiresAt, uniqueSeatNumbers, showId, userId]
+        );
+
+        if (updated.rows.length !== uniqueSeatNumbers.length) {
+          await client.query("ROLLBACK");
+          return {
+            success: false,
+            message: "The seat hold changed before it could be extended. Please select your seats again.",
+          };
+        }
+
+        await client.query("COMMIT");
+      } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+      } finally {
+        client.release();
+      }
+
+      // Broadcast the confirmed hold and keep server-side expiry timers aligned.
+      for (const seatNumber of uniqueSeatNumbers) {
+        io.to(`show-${showId}`).emit("seat-updated", {
           seatNumber,
-          status: 'locked',
+          status: "locked",
           userId,
           lockExpiresAt,
         });
-        // Update in-memory timeout to match new lock_expires_at
+
         this.clearLockTimeout(seatNumber, showId, userId);
         const msUntilExpire = lockExpiresAt.getTime() - Date.now();
         if (msUntilExpire > 0) {
@@ -431,10 +486,11 @@ class SeatLockingService {
           this.lockTimeouts.set(timeoutKey, timeout);
         }
       }
-      return { success: true, message: 'Lock duration extended.' };
+
+      return { success: true, message: "Lock duration extended." };
     } catch (error) {
-      console.error('❌ Error extending lock duration:', error);
-      return { success: false, message: 'Failed to extend lock duration.' };
+      console.error("❌ Error extending lock duration:", error);
+      return { success: false, message: "Failed to extend lock duration." };
     }
   }
 
