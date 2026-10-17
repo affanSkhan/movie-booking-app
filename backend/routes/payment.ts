@@ -60,7 +60,16 @@ router.post(
     }
 
     try {
-      const order = await createRazorpayOrder(expectedAmount, "INR");
+      const order = await createRazorpayOrder(
+        expectedAmount,
+        "INR",
+        `mb_${userId}_${showId}_${Date.now()}`,
+        {
+          user_id: String(userId),
+          show_id: String(showId),
+          seat_numbers: [...selectedSeats].sort().join(","),
+        },
+      );
       res.status(200).json({
         orderId: order.id,
         key: razorpayKeyId,
