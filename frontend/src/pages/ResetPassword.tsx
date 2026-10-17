@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,8 +9,6 @@ import Toast from '../components/ui/Toast';
 import type { ToastType } from '../components/ui/Toast';
 
 const ResetPassword: React.FC = () => {
-  const { token } = useParams<{ token: string }>();
-  const navigate = useNavigate();
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -23,23 +21,14 @@ const ResetPassword: React.FC = () => {
     defaultValues: { password: '', confirmPassword: '' },
   });
 
-  const onSubmit = async (data: ResetPasswordFormData) => {
+  const onSubmit = async () => {
     setLoading(true);
     setToast(null);
-    
-    // Simulate API call with the token and password data
-    console.log('Resetting password with token:', token);
-    console.log('New password:', data.password);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Always show success message
-    setToast({ 
-      message: 'Password has been successfully reset.', 
-      type: 'success' 
+    // This route has no server-side token validation yet. Never log a password or pretend the password changed.
+    setToast({
+      message: 'Password reset is not configured for this deployment. No changes were made. Please contact the administrator for account recovery.',
+      type: 'error',
     });
-    
-    // Redirect to login after a delay
-    setTimeout(() => navigate('/login'), 2000);
     setLoading(false);
   };
 
@@ -63,26 +52,26 @@ const ResetPassword: React.FC = () => {
           <div className="text-5xl lg:text-6xl mb-4 lg:mb-6">🔑</div>
           <h1 className="text-3xl lg:text-4xl font-bold mb-3 lg:mb-4">Reset Your Password</h1>
           <p className="text-lg lg:text-xl mb-6 lg:mb-8 text-orange-100">
-            Create a new secure password for your account
+            Password reset is not enabled on this deployment yet. No password changes can be made from this screen.
           </p>
           <div className="space-y-3 lg:space-y-4">
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <span className="text-xs lg:text-sm">🔒</span>
               </div>
-              <span className="text-sm lg:text-base text-orange-100">Create a strong password</span>
+              <span className="text-sm lg:text-base text-orange-100">Password reset service is not available</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <span className="text-xs lg:text-sm">✅</span>
               </div>
-              <span className="text-sm lg:text-base text-orange-100">Confirm your password</span>
+              <span className="text-sm lg:text-base text-orange-100">Contact the administrator</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 lg:w-8 lg:h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <span className="text-xs lg:text-sm">🎉</span>
               </div>
-              <span className="text-sm lg:text-base text-orange-100">Access your account</span>
+              <span className="text-sm lg:text-base text-orange-100">Return to sign-in after access is restored</span>
             </div>
           </div>
         </motion.div>

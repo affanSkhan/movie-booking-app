@@ -22,18 +22,12 @@ const ForgotPassword: React.FC = () => {
     defaultValues: { email: '' },
   });
 
-  const onSubmit = async (data: ForgotPasswordFormData) => {
+  const onSubmit = async () => {
     setLoading(true);
     setToast(null);
-    
-    // Simulate API call with the email data
-    console.log('Sending reset instructions to:', data.email);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Always show success message for security
-    setToast({ 
-      message: 'If an account exists for this email, reset instructions will be sent.', 
-      type: 'success' 
+    setToast({
+      message: 'Password recovery is not configured for this deployment. No email was sent. Please contact the administrator for account recovery.',
+      type: 'error',
     });
     setLoading(false);
   };
@@ -63,7 +57,7 @@ const ForgotPassword: React.FC = () => {
           </div>
           <h1 className="text-4xl lg:text-5xl font-bold mb-4 lg:mb-6">Forgot Password?</h1>
           <p className="text-xl lg:text-2xl mb-8 lg:mb-10 text-primary-foreground/80 leading-relaxed">
-            Don't worry! Enter your email and we'll send you reset instructions
+            Password recovery is not enabled on this deployment yet. Please contact the administrator to regain access.
           </p>
           <div className="space-y-4 lg:space-y-6">
             <div className="flex items-center gap-4">
@@ -76,13 +70,13 @@ const ForgotPassword: React.FC = () => {
               <div className="w-10 h-10 lg:w-12 lg:h-12 bg-primary-foreground/20 rounded-xl flex items-center justify-center">
                 <CheckCircle className="w-5 h-5 lg:w-6 lg:h-6 text-primary-foreground" />
               </div>
-              <span className="text-lg lg:text-xl text-primary-foreground/90">Receive reset instructions</span>
+              <span className="text-lg lg:text-xl text-primary-foreground/90">Contact the administrator for recovery</span>
             </div>
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 lg:w-12 lg:h-12 bg-primary-foreground/20 rounded-xl flex items-center justify-center">
                 <Key className="w-5 h-5 lg:w-6 lg:h-6 text-primary-foreground" />
               </div>
-              <span className="text-lg lg:text-xl text-primary-foreground/90">Create a new password</span>
+              <span className="text-lg lg:text-xl text-primary-foreground/90">Sign in once account access is restored</span>
             </div>
           </div>
         </motion.div>
