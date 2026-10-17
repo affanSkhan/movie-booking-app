@@ -119,7 +119,6 @@ const Payment: React.FC = () => {
     return () => {
       unlockSeats();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentFlowActive, paymentData?.showId, paymentData?.selectedSeats]);
 
   // Unlock seats on browser/tab close
@@ -140,7 +139,6 @@ const Payment: React.FC = () => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentFlowActive, paymentData?.showId, paymentData?.selectedSeats]);
 
   // Format show time
