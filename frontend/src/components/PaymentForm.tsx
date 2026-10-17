@@ -69,6 +69,9 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       const { orderId, key, amount: amountInPaise, currency = 'INR' } = response.data as { orderId: string; key: string; amount: number; currency?: string };
 
       // The server order's amount is in paise, as required by Razorpay Checkout.
+      if (!orderId || !key || !Number.isFinite(amountInPaise) || amountInPaise !== amount * 100) {
+        throw new Error('The payment gateway returned an invalid order. Please try again.');
+      }
 
       // Create Razorpay options
       const options = {
@@ -116,12 +119,11 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       };
 
       // Handle a slow/blocked checkout script gracefully instead of throwing a runtime error.
-      const RazorpayConstructor = (window as unknown as { Razorpay?: new (options: any) => { open: () => void } }).Razorpay;
+      const RazorpayConstructor = (window as unknown as { Razorpay?: new (options: unknown) => { open: () => void } }).Razorpay;
       if (!RazorpayConstructor) {
         throw new Error('Razorpay checkout did not load. Please check your connection and try again.');
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const razorpay = new (RazorpayConstructor as new (options: any) => { open: () => void })(options);
+      const razorpay = new RazorpayConstructor(options);
       razorpay.open();
 
     } catch (error: unknown) {
