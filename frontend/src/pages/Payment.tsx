@@ -160,7 +160,7 @@ const Payment: React.FC = () => {
     };
   };
 
-  const handlePaymentSuccess = (paymentId: string, orderId: string) => {
+  const handlePaymentSuccess = (paymentId: string, orderId: string, booking: Record<string, unknown>) => {
     paymentCompletedRef.current = true;
     sessionStorage.removeItem('paymentFlowStarted');
     setToast({ 
@@ -173,7 +173,10 @@ const Payment: React.FC = () => {
         state: {
           paymentId,
           orderId,
-          bookingData: paymentData
+          booking,
+          movie: paymentData.movie,
+          show: paymentData.show,
+          selectedSeats: paymentData.selectedSeats
         }
       });
     }, 2000);
