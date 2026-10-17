@@ -1,6 +1,8 @@
 name: Seat booking quality checks
 
 on:
+  push:
+    branches: [main, feat/seat-booking-ux-reliability]
   pull_request:
     branches: [main]
   workflow_dispatch:
