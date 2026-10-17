@@ -39,7 +39,7 @@ const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-muted/20">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-background text-foreground pt-[4.5rem]">
       {/* Enhanced Left Side - Welcome Section */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
